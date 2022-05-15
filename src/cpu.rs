@@ -1,7 +1,6 @@
 pub mod instructions;
 mod opcode;
 
-// pub use crate::cpu::instructions::OpCodes;
 
 use crate::cpu::instructions::{AddressingMode, Instruction};
 
@@ -45,7 +44,7 @@ impl ProcessorStatus {
 }
 
 impl CPU {
-    pub fn new(rom: &[u8; 64 * 1024]) -> CPU {
+    pub fn new(rom: [u8; 64 * 1024]) -> CPU {
         // TODO: refactor
         let mut addressable_memory: [u8; 64 * 1024] = [0x00; 64 * 1024];
 
@@ -53,6 +52,7 @@ impl CPU {
         for (i, o) in rom.iter().enumerate() {
             addressable_memory[i] = *o;
         }
+
 
         CPU {
             address: 0x0000,
@@ -99,7 +99,7 @@ impl CPU {
         print!("]\n");
 
         match self.fetch() {
-            Some(code) => opcode::process(self, code),
+            Some(code) => self.process(code),
             None => {
                 eprintln!("Coulnd't fetch instruction");
                 true

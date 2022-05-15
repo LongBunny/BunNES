@@ -21,11 +21,11 @@ pub fn run() {
         }
     }
 
-    for i in 0..32 {
-        // println!("{:#04X}", rom[i]);
-    }
+    // for i in 0..32 {
+    //     // println!("{:#04X}", rom[i]);
+    // }
 
-    let mut cpu = CPU::new(&rom);
+    let mut cpu = CPU::new(rom);
     cpu.run();
 
     println!("{}", cpu);
