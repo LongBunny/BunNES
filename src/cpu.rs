@@ -6,6 +6,7 @@ use crate::cpu::instructions::{AddressingMode, Instruction};
 
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct CPU {
     address: u16,
     data: u8,
@@ -14,6 +15,7 @@ pub struct CPU {
     address_bus: [u8; 64 * 1024],
 }
 
+#[derive(Debug)]
 struct Registers {
     program_counter: u16,
     stack_pointer: u8,

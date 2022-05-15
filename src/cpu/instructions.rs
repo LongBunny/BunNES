@@ -91,6 +91,19 @@ impl Instruction {
         panic!("unknown instruction: {:?} {:?}", self, am);
     }
 
+    pub fn test_mode(ins: &Instruction, am: AddressingMode) -> u8 {
+        for (i, op_code) in OP_CODES.iter().enumerate() {
+            let v = match op_code {
+                Some(val) => val,
+                _ => continue,
+            };
+            if v.0 == *ins && v.1 == am {
+                return i as u8;
+            }
+        }
+        panic!("unknown instruction: {:?} {:?}", ins, am);
+    }
+
     pub fn get(op_code: u8) -> Option<(Instruction, AddressingMode)> {
         OP_CODES[op_code as usize]
     }

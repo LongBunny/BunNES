@@ -30,6 +30,7 @@ mod cpu_functions {
         ProcessorStatus, CPU,
     };
 
+    #[allow(unused_variables)]
     impl CPU {
         pub fn process(&mut self, ins: Instruction, am: AddressingMode) -> bool {
             print!("Executing: {:?} {:?}", ins, am);
@@ -153,19 +154,19 @@ mod cpu_functions {
             iri
         }
 
-        fn and(&mut self, am: AddressingMode) -> IRI {
+        pub fn and(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
 
-        fn asl(&mut self, am: AddressingMode) -> IRI {
+        pub fn asl(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
 
-        fn bcc(&mut self, am: AddressingMode) -> IRI {
+        pub fn bcc(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
 
-        fn bcs(&mut self, am: AddressingMode) -> IRI {
+        pub fn bcs(&mut self, am: AddressingMode) -> IRI {
             match am {
                 AddressingMode::Relative => {
                     let rel_jump = self.get_next_byte();
@@ -179,27 +180,27 @@ mod cpu_functions {
             }
         }
 
-        fn beq(&mut self, am: AddressingMode) -> IRI {
+        pub fn beq(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
 
-        fn bit(&mut self, am: AddressingMode) -> IRI {
+        pub fn bit(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn bmi(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn bmi(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn bne(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn bne(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn bpl(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn bpl(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn brk(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn brk(&mut self, am: AddressingMode) -> IRI {
             let iri = match am {
                 AddressingMode::Implied => IRI::new_stop(7),
                 _ => todo!("BRK: unrecognized AddressingMode: {:?}", am),
@@ -208,71 +209,71 @@ mod cpu_functions {
             iri
         }
 
-        fn bvc(&mut self, am: AddressingMode) -> IRI {
+        pub fn bvc(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn bvs(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn bvs(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn clc(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn clc(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn cld(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn cld(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn cli(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn cli(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn clv(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn clv(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn cmp(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn cmp(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn cpx(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn cpx(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn cpy(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn cpy(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn dec(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn dec(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn dex(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn dex(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn dey(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn dey(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn eor(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn eor(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn inc(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn inc(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn inx(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn inx(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn iny(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn iny(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn jmp(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn jmp(&mut self, am: AddressingMode) -> IRI {
             match am {
                 AddressingMode::Absolute => {
                     self.registers.program_counter = self.get_next_word();
@@ -281,12 +282,12 @@ mod cpu_functions {
                 _ => todo!("JMP: unrecognized AddressingMode: {:?}", am),
             }
         }
-        
-        fn jsr(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn jsr(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn lda(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn lda(&mut self, am: AddressingMode) -> IRI {
             let iri = match am {
                 AddressingMode::Immediate => {
                     let next_val = self.get_next_byte();
@@ -295,9 +296,13 @@ mod cpu_functions {
                     IRI::new(2)
                 }
                 AddressingMode::Zeropage => {
-                    let addr = self.get_next_byte() as usize;
-                    self.registers.accumulator = self.address_bus[addr];
-                    IRI::new(2)
+                    let addr = self.get_next_byte();
+                    self.registers.accumulator = self.get_ram_value_zp(addr);
+                    IRI::new(3)
+                },
+                AddressingMode::ZeropageX => {
+                    self.registers.accumulator = self.get_ram_value_zp(self.registers.index_register_x);
+                    IRI::new(4)
                 }
                 _ => todo!("LDA: unrecognized AddressingMode: {:?}", am),
             };
@@ -306,30 +311,30 @@ mod cpu_functions {
             iri
         }
 
-        fn ldx(&mut self, am: AddressingMode) -> IRI {
+        pub fn ldx(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn ldy(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn ldy(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn lsr(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn lsr(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn nop(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn nop(&mut self, am: AddressingMode) -> IRI {
             match am {
                 AddressingMode::Implied => IRI::new(2),
                 _ => todo!("NOP: unrecognized AddressingMode: {:?}", am),
             }
         }
 
-        fn ora(&mut self, am: AddressingMode) -> IRI {
+        pub fn ora(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn pha(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn pha(&mut self, am: AddressingMode) -> IRI {
             match am {
                 AddressingMode::Implied => {
                     self.address_bus[self.get_stack_location()] = self.registers.accumulator;
@@ -341,11 +346,11 @@ mod cpu_functions {
             }
         }
 
-        fn php(&mut self, am: AddressingMode) -> IRI {
+        pub fn php(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn pla(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn pla(&mut self, am: AddressingMode) -> IRI {
             let iri = match am {
                 AddressingMode::Implied => {
                     self.registers.accumulator = self.address_bus[self.get_stack_location()];
@@ -359,43 +364,43 @@ mod cpu_functions {
             iri
         }
 
-        fn plp(&mut self, am: AddressingMode) -> IRI {
+        pub fn plp(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn rol(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn rol(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn ror(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn ror(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn rti(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn rti(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn rts(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn rts(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn sbc(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn sbc(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn sec(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn sec(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn sed(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn sed(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn sei(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn sei(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn sta(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn sta(&mut self, am: AddressingMode) -> IRI {
             match am {
                 AddressingMode::Zeropage => {
                     let addr = self.get_next_byte() as usize;
@@ -406,38 +411,174 @@ mod cpu_functions {
                 _ => todo!("STA: unrecognized AddressingMode: {:?}", am),
             }
         }
-        
-        fn stx(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn stx(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn sty(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn sty(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn tax(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn tax(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn tay(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn tay(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn tsx(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn tsx(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn txa(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn txa(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn txs(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn txs(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
-        fn tya(&mut self, am: AddressingMode) -> IRI {
+
+        pub fn tya(&mut self, am: AddressingMode) -> IRI {
             IRI::new(0)
         }
-        
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::cpu::CPU;
+
+    fn get_cpu() -> CPU {
+        let binary = [0u8; 64 * 1024];
+        CPU::new(binary)
+    }
+
+    mod cpu_tests {
+        use super::get_cpu;
+
+        #[test]
+        fn cpu_acc_empty() {
+            let cpu = get_cpu();
+            assert_eq!(cpu.registers.accumulator, 0x00);
+        }
+    }
+
+    mod opcode_tests {
+        use super::get_cpu;
+        use crate::cpu::{
+            instructions::{self, AddressingMode, Instruction},
+            CPU,
+        };
+
+        fn prep_command(
+            cpu: &mut CPU,
+            ins: Instruction,
+            am: AddressingMode,
+            value: Option<u8>,
+            value2: Option<u8>,
+        ) {
+            cpu.registers.program_counter = 0x0000;
+            let rom_start = 32 * 1024;
+            cpu.address_bus[rom_start + 0x0000] = Instruction::mode(&ins, am);
+            if let Some(value) = value {
+                cpu.address_bus[rom_start + 0x0001] = value;
+            }
+            if let Some(value2) = value2 {
+                cpu.address_bus[rom_start + 0x0002] = value2;
+            }
+
+            cpu.registers.program_counter = u16::wrapping_add(cpu.registers.program_counter, 1);
+        }
+
+        fn prep_memory_zp(cpu: &mut CPU, addr: u8, value: u8) {
+            cpu.address_bus[(0x0000 + addr) as usize] = value;
+        }
+
+        fn prep_memory(cpu: &mut CPU, addr: u16, value: u8) {
+            cpu.address_bus[(0x0000 + addr) as usize] = value;
+        }
+
+        mod opcode_tests_lda {
+            use super::*;
+
+            #[test]
+            fn cpu_lda_immediate() {
+                let mut cpu = get_cpu();
+                // immediate
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    AddressingMode::Immediate,
+                    Some(2),
+                    None,
+                );
+                cpu.lda(AddressingMode::Immediate);
+                assert_eq!(cpu.registers.accumulator, 0x02);
+            }
+
+            #[test]
+            fn cpu_lda_zeropage() {
+                let mut cpu = get_cpu();
+                prep_memory_zp(&mut cpu, 0x02, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    AddressingMode::Zeropage,
+                    Some(2),
+                    None,
+                );
+                cpu.lda(AddressingMode::Zeropage);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
+
+            #[test]
+            fn cpu_lda_zeropage_x() {
+                let mut cpu = get_cpu();
+                cpu.registers.index_register_x = 0x02;
+                prep_memory_zp(&mut cpu, 0x02, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    AddressingMode::ZeropageX,
+                    Some(0),
+                    None,
+                );
+                println!("{}", cpu);
+                cpu.lda(AddressingMode::ZeropageX);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
+            
+            #[test]
+            fn cpu_lda_absolute() {
+                let mut cpu = get_cpu();
+                prep_memory(&mut cpu, 0x4000, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    AddressingMode::Absolute,
+                    Some(0x00),
+                    Some(0x40),
+                );
+                cpu.lda(AddressingMode::Absolute);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
+            
+            // #[test]
+            // fn cpu_lda_absolute_x() {
+            //     let mut cpu = get_cpu();
+            //     prep_memory(&mut cpu, 0x4000, 0x08);
+            //     prep_command(
+            //         &mut cpu,
+            //         Instruction::LDA,
+            //         AddressingMode::Absolute,
+            //         Some(0x00),
+            //         Some(0x40),
+            //     );
+            //     cpu.lda(AddressingMode::Absolute);
+            //     assert_eq!(cpu.registers.accumulator, 0x08);
+            // }
+        }
     }
 }
