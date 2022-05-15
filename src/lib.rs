@@ -1,49 +1,32 @@
-use crate::cpu::{CPU, instructions::{Instruction, AddressingMode}};
+use std::{
+    fs::File,
+    io::{BufReader, ErrorKind, Read},
+};
+
+use crate::cpu::CPU;
 
 pub mod cpu;
 
-
 pub fn run() {
-    let mut rom: [u8; 32 * 1024] = [0; 32 * 1024];
+    let mut rom: [u8; 64 * 1024] = [0; 64 * 1024];
 
-    rom[0x0000] = Instruction::LDA.mode(AddressingMode::Immediate);
-    rom[0x0001] = 1;
-    rom[0x0002] = Instruction::ADC.mode(AddressingMode::Immediate);
-    rom[0x0003] = 1;
-    rom[0x0004] = Instruction::BCS.mode(AddressingMode::Relative);
-    rom[0x0005] = 3;
-    rom[0x0006] = Instruction::JMP.mode(AddressingMode::Absolute);
-    rom[0x0007] = 0x02;
-    rom[0x0008] = 0x00;
-    rom[0x0009] = Instruction::BRK.mode(AddressingMode::Implied);
-    
+    let file = File::open("vasm/a.out").unwrap();
+    let mut reader = BufReader::new(file);
 
-    // rom[0x0000] = Instruction::LDA.mode(AddressingMode::Immediate);
-    // rom[0x0001] = 12;
-    // rom[0x0002] = Instruction::STA.mode(AddressingMode::Absolute);
-    // rom[0x0003] = 0x00;
-    // rom[0x0004] = 0x02;
+    loop {
+        if let Err(e) = reader.read_exact(&mut rom) {
+            if e.kind() == ErrorKind::UnexpectedEof {
+                break;
+            }
+        }
+    }
 
-
+    for i in 0..32 {
+        // println!("{:#04X}", rom[i]);
+    }
 
     let mut cpu = CPU::new(&rom);
     cpu.run();
 
-    // let mut line = String::new();
-    // std::io::stdin().read_line(&mut line).unwrap();
-    // println!("{}", line);
-    // match line.as_str() {
-    //     "y" => {
-    //         println!("single step");
-    //     }
-    //     _ => {
-    //         println!("automatic");
-    //         cpu.run();
-    //     }
-    // }
-    
-
     println!("{}", cpu);
-
 }
-
