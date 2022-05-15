@@ -99,7 +99,7 @@ impl CPU {
         print!("]\n");
 
         match self.fetch() {
-            Some(code) => self.process(code),
+            Some((instructions, addressing_mode)) => self.process(instructions, addressing_mode),
             None => {
                 eprintln!("Coulnd't fetch instruction");
                 true
