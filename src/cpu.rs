@@ -12,8 +12,7 @@ pub struct CPU {
     data: u8,
     registers: Registers,
 
-    rom: [u8; 32 * 1024],
-    ram: [u8; 32 * 1024],
+    addressable_memory: [u8; 64 * 1024],
 }
 
 struct Registers {
@@ -27,6 +26,7 @@ struct Registers {
 
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[derive(Clone, Copy, Debug)]
 enum ProcessorStatus {
     Carry,
     Zero,
@@ -37,28 +37,49 @@ enum ProcessorStatus {
     Negative,
 }
 
+impl ProcessorStatus {
+    // TODO: refactor
+    pub fn is_set(&self, cpu: &CPU) -> bool {
+        cpu.registers.processor_status & (1 << (*self as i8)) == 1
+    }
+}
+
 impl CPU {
     pub fn new(rom: &[u8; 32 * 1024]) -> CPU {
-        let ram = [0u8; 32 * 1024];
+        let mut addressable_memory: [u8; 64 * 1024] = [0x00; 64 * 1024];
+
+        // load rom into addressable memory
+        for (i, o) in rom.iter().enumerate() {
+            addressable_memory[i + 32 * 1024] = *o;
+        }
+
         CPU {
             address: 0x0000,
             data: 0x00,
             registers: Registers {
-                program_counter: 0x00,
+                program_counter: 0xFFFC,
                 stack_pointer: 0x00,
                 accumulator: 0x00,
                 index_register_x: 0x00,
                 index_register_y: 0x00,
                 processor_status: 0x00,
             },
-            rom: *rom,
-            ram: ram,
+            addressable_memory,
         }
     }
 
     pub fn run(&mut self) {
         println!("CPU run");
         let mut running = true;
+
+        let mut reset_vector = 0u16;
+        // reset vector
+        reset_vector = reset_vector
+            & (self.addressable_memory[(self.registers.program_counter + 0) as usize] as u16);
+        reset_vector = reset_vector
+            & (self.addressable_memory[(self.registers.program_counter + 1) as usize] as u16) << 8;
+        self.registers.program_counter = reset_vector;
+        println!("reset vector: {}", reset_vector);
 
         while running {
             running = !self.step();
@@ -68,18 +89,33 @@ impl CPU {
     }
 
     pub fn step(&mut self) -> bool {
-        println!("{}", format!("ACC:    {}    {}", format!("{:#04X}", self.registers.accumulator), format!("{:3}", self.registers.accumulator)));
+        println!(
+            "{}",
+            format!(
+                "ACC:    {}    {}",
+                format!("{:#04X}", self.registers.accumulator),
+                format!("{:3}", self.registers.accumulator)
+            )
+        );
+        println!(
+            "{}",
+            format!(
+                " PS:    {}\n          _NOBDIZC",
+                format!("{:#010b}", self.registers.processor_status)
+            )
+        );
         match self.fetch() {
             Some(code) => opcode::process(self, code),
             None => {
                 eprintln!("Coulnd't fetch instruction");
                 true
-            },
+            }
         }
     }
 
     fn fetch(&mut self) -> Option<(Instruction, AddressingMode)> {
-        let instruction = self.rom[self.registers.program_counter as usize];
+        let instruction =
+            self.addressable_memory[(self.registers.program_counter + 32 * 1024) as usize];
         self.registers.program_counter = u16::wrapping_add(self.registers.program_counter, 1);
         Instruction::get(instruction)
     }
@@ -147,7 +183,8 @@ impl std::fmt::Display for CPU {
         format_string.push_str(
             format!(
                 "\n      PS:    {}\n               _NOBDIZC",
-                format!("{:#010b}", self.registers.processor_status))
+                format!("{:#010b}", self.registers.processor_status)
+            )
             .as_str(),
         );
 
