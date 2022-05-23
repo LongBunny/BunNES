@@ -121,6 +121,16 @@ mod cpu_functions {
             overflow
         }
 
+
+        // TODO: this
+        fn zeropage() {
+
+        }
+
+        fn zeropage_x() {
+
+        }
+
         fn adc(&mut self, am: AddressingMode) -> IRI {
             let val: u8;
             let iri = match am {
@@ -505,80 +515,140 @@ mod tests {
 
             #[test]
             fn cpu_lda_immediate() {
+                let adm = AddressingMode::Immediate;
                 let mut cpu = get_cpu();
                 // immediate
                 prep_command(
                     &mut cpu,
                     Instruction::LDA,
-                    AddressingMode::Immediate,
+                    adm,
                     Some(2),
                     None,
                 );
-                cpu.lda(AddressingMode::Immediate);
+                cpu.lda(adm);
                 assert_eq!(cpu.registers.accumulator, 0x02);
             }
 
             #[test]
             fn cpu_lda_zeropage() {
+                let adm = AddressingMode::Zeropage;
                 let mut cpu = get_cpu();
                 prep_memory_zp(&mut cpu, 0x02, 0x08);
                 prep_command(
                     &mut cpu,
                     Instruction::LDA,
-                    AddressingMode::Zeropage,
+                    adm,
                     Some(2),
                     None,
                 );
-                cpu.lda(AddressingMode::Zeropage);
+                cpu.lda(adm);
                 assert_eq!(cpu.registers.accumulator, 0x08);
             }
 
             #[test]
             fn cpu_lda_zeropage_x() {
+                let adm = AddressingMode::ZeropageX;
                 let mut cpu = get_cpu();
                 cpu.registers.index_register_x = 0x02;
                 prep_memory_zp(&mut cpu, 0x02, 0x08);
                 prep_command(
                     &mut cpu,
                     Instruction::LDA,
-                    AddressingMode::ZeropageX,
+                    adm,
                     Some(0),
                     None,
                 );
                 println!("{}", cpu);
-                cpu.lda(AddressingMode::ZeropageX);
+                cpu.lda(adm);
                 assert_eq!(cpu.registers.accumulator, 0x08);
             }
             
             #[test]
             fn cpu_lda_absolute() {
+                let adm = AddressingMode::Absolute;
                 let mut cpu = get_cpu();
                 prep_memory(&mut cpu, 0x4000, 0x08);
                 prep_command(
                     &mut cpu,
                     Instruction::LDA,
-                    AddressingMode::Absolute,
+                    adm,
                     Some(0x00),
                     Some(0x40),
                 );
-                cpu.lda(AddressingMode::Absolute);
+                cpu.lda(adm);
                 assert_eq!(cpu.registers.accumulator, 0x08);
             }
             
-            // #[test]
-            // fn cpu_lda_absolute_x() {
-            //     let mut cpu = get_cpu();
-            //     prep_memory(&mut cpu, 0x4000, 0x08);
-            //     prep_command(
-            //         &mut cpu,
-            //         Instruction::LDA,
-            //         AddressingMode::Absolute,
-            //         Some(0x00),
-            //         Some(0x40),
-            //     );
-            //     cpu.lda(AddressingMode::Absolute);
-            //     assert_eq!(cpu.registers.accumulator, 0x08);
-            // }
+            #[test]
+            fn cpu_lda_absolute_x() {
+                let adm = AddressingMode::AbsoluteX;
+                let mut cpu = get_cpu();
+                cpu.registers.index_register_x = 0x02;
+                prep_memory(&mut cpu, 0x4000, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    adm,
+                    Some(0x00),
+                    Some(0x00),
+                );
+                cpu.lda(adm);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
+            
+            #[test]
+            fn cpu_lda_absolute_y() {
+                let adm = AddressingMode::AbsoluteY;
+                let mut cpu = get_cpu();
+                cpu.registers.index_register_y = 0x02;
+                prep_memory(&mut cpu, 0x4000, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    adm,
+                    Some(0x00),
+                    Some(0x00),
+                );
+                cpu.lda(adm);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
+            
+            #[test]
+            fn cpu_lda_indirect_x() {
+                let adm = AddressingMode::IndirectX;
+                let mut cpu = get_cpu();
+                cpu.registers.index_register_x = 0x02;
+                prep_memory(&mut cpu, 0x4000, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    adm,
+                    Some(0x00),
+                    Some(0x00),
+                );
+                cpu.lda(adm);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
+
+            
+            #[test]
+            fn cpu_lda_indirect_y() {
+                let adm = AddressingMode::IndirectY;
+                let mut cpu = get_cpu();
+                cpu.registers.index_register_y = 0x02;
+                prep_memory(&mut cpu, 0x4000, 0x08);
+                prep_command(
+                    &mut cpu,
+                    Instruction::LDA,
+                    adm,
+                    Some(0x00),
+                    Some(0x00),
+                );
+                cpu.lda(adm);
+                assert_eq!(cpu.registers.accumulator, 0x08);
+            }
         }
     }
 }
+
+

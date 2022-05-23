@@ -1,4 +1,4 @@
 
 fn main() {
-    emulator_6502::run();
+    emulator_nes::run(String::from("../a.out"));
 }

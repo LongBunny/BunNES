@@ -73,8 +73,8 @@ pub enum AddressingMode {
     AbsoluteX,
     AbsoluteY,
     Indirect,
-    IndexedIndirect,
-    IndirectIndexed,
+    IndirectX,
+    IndirectY,
 }
 
 impl Instruction {
@@ -108,7 +108,8 @@ impl Instruction {
         OP_CODES[op_code as usize]
     }
 }
-
+// TODO: IndexedIndirect is (Indirect, X), IndirectIndexed is (Indirect), Y
+// LDA is correct, rest is not
 pub static OP_CODES: [Option<(Instruction, AddressingMode)>; 256] = [
     Some((Instruction::BRK, AddressingMode::Implied)), // 0x00
     Some((Instruction::ORA, AddressingMode::ZeropageX)), // 0x01
@@ -271,7 +272,7 @@ pub static OP_CODES: [Option<(Instruction, AddressingMode)>; 256] = [
     None,                                              // 0x9E
     None,                                              // 0x9F
     Some((Instruction::LDY, AddressingMode::Immediate)), // 0xA0
-    Some((Instruction::LDA, AddressingMode::ZeropageX)), // 0xA1
+    Some((Instruction::LDA, AddressingMode::IndirectX)), // 0xA1
     Some((Instruction::LDX, AddressingMode::Immediate)), // 0xA2
     None,                                              // 0xA3
     Some((Instruction::LDY, AddressingMode::Zeropage)), // 0xA4
@@ -287,7 +288,7 @@ pub static OP_CODES: [Option<(Instruction, AddressingMode)>; 256] = [
     Some((Instruction::LDY, AddressingMode::Absolute)), // 0xAE
     None,                                              // 0xAF
     Some((Instruction::BCS, AddressingMode::Relative)), // 0xB0
-    Some((Instruction::LDA, AddressingMode::ZeropageY)), // 0xB1
+    Some((Instruction::LDA, AddressingMode::IndirectY)), // 0xB1
     Some((Instruction::LDA, AddressingMode::Zeropage)), // 0xB2
     None,                                              // 0xB3
     Some((Instruction::LDY, AddressingMode::ZeropageX)), // 0xB4

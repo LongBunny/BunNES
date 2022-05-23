@@ -7,10 +7,10 @@ use crate::cpu::CPU;
 
 pub mod cpu;
 
-pub fn run() {
+pub fn run(filename: String) {
     let mut rom: [u8; 64 * 1024] = [0; 64 * 1024];
 
-    let file = File::open("vasm/a.out").unwrap();
+    let file = File::open(filename).unwrap();
     let mut reader = BufReader::new(file);
 
     loop {
@@ -29,4 +29,9 @@ pub fn run() {
     cpu.run();
 
     println!("{}", cpu);
+}
+
+#[no_mangle]
+pub extern "C" fn ext_run() {
+    run(String::from("a.out"));
 }
