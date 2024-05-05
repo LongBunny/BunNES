@@ -1,16 +1,19 @@
 use std::rc::Rc;
+use crate::ppu::Ppu;
 use crate::rom::Rom;
 
 pub struct Bus {
     ram: Rc<crate::emulator::Ram>,
     rom: Rc<Rom>,
+    ppu: Rc<Ppu>,
 }
 
 impl Bus {
-    pub fn new(ram: Rc<crate::emulator::Ram>, rom: Rc<Rom>) -> Bus {
+    pub fn new(ram: Rc<crate::emulator::Ram>, rom: Rc<Rom>, ppu: Rc<Ppu>) -> Bus {
         Bus {
             ram,
-            rom
+            rom,
+            ppu
         }
     }
 
@@ -33,8 +36,9 @@ impl Bus {
         match addr {
             0x0000..=0x07FF => self.ram[addr as usize],
             0x0800..=0x1FFF => unimplemented!("RAM mirrors"),
-            0x2000..=0x2007 => unimplemented!("PPU"),
-            0x2008..=0x3FFF => unimplemented!("PPU mirrors"),
+            0x2000..=0x3FFF => {
+                self.ppu.register((addr % 8) as u8)
+            },
             0x4000..=0x4017 => unimplemented!("APU"),
             0x4018..=0x401F => panic!("APU and IO. Should be disabled"),
             0x4020..=0xFFFF => {

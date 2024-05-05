@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use crate::bus::Bus;
 use crate::cpu::Cpu;
+use crate::ppu::Ppu;
 use crate::rom::Rom;
 
 
@@ -18,7 +19,10 @@ impl Emulator {
     pub fn new(rom: Rom) -> Emulator {
         let ram = Rc::new([0u8; RAM_CAP]);
         let rom = Rc::new(rom);
-        let bus = Rc::new(Bus::new(ram.clone(), rom.clone()));
+        let ppu = Rc::new(Ppu::new());
+        let bus = Rc::new(Bus::new(ram.clone(), rom.clone(), ppu.clone()));
+
+
         let cpu = Cpu::new(bus.clone());
 
         Emulator {
