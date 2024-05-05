@@ -25,10 +25,8 @@ impl IRI {
 
 mod cpu_functions {
     use super::IRI;
-    use crate::cpu::{
-        instructions::{AddressingMode, Instruction},
-        ProcessorStatus, CPU,
-    };
+    use crate::cpu::{instructions::AddressingMode, instructions::Instruction};
+    use crate::cpu::cpu::CPU;
 
     #[allow(unused_variables)]
     impl CPU {

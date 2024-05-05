@@ -3,14 +3,12 @@ use std::{
     io::{BufReader, ErrorKind, Read},
 };
 
-use crate::cpu::CPU;
-
 pub mod cpu;
 
-pub fn run(filename: String) {
+fn main() {
     let mut rom: [u8; 64 * 1024] = [0; 64 * 1024];
 
-    let file = File::open(filename).unwrap();
+    let file = File::open("../a.out").unwrap();
     let mut reader = BufReader::new(file);
 
     loop {
@@ -21,17 +19,8 @@ pub fn run(filename: String) {
         }
     }
 
-    // for i in 0..32 {
-    //     // println!("{:#04X}", rom[i]);
-    // }
-
     let mut cpu = CPU::new(rom);
     cpu.run();
 
     println!("{}", cpu);
-}
-
-#[no_mangle]
-pub extern "C" fn ext_run() {
-    run(String::from("a.out"));
 }
