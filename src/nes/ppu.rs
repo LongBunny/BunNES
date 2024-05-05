@@ -1,5 +1,3 @@
-use std::process::exit;
-
 const PPU_INIT_TIME: u64 = 29658;
 const MAX_DOT_COUNT: u32 = 283 * 242;
 
@@ -62,30 +60,21 @@ impl Ppu {
         // delay until ppu boots i guess?
         let mut could_write = true;
         match register {
-            0 => { if self.cpu_cycle_count >= PPU_INIT_TIME { self.ppu_ctrl = value } else { could_write = false } }
-            1 => { if self.cpu_cycle_count >= PPU_INIT_TIME { self.ppu_mask = value } else { could_write = false } }
-            2 => { self.ppu_status = value }
-            3 => { self.oam_addr = value }
-            4 => { self.oam_data = value }
-            5 => { if self.cpu_cycle_count >= PPU_INIT_TIME { self.ppu_scroll = value } else { could_write = false } }
-            6 => { if self.cpu_cycle_count >= PPU_INIT_TIME { self.ppu_addr = value } else { could_write = false } }
-            7 => { self.ppu_data = value }
+            0 => self.ppu_ctrl = value,
+            1 => self.ppu_mask = value,
+            2 => self.ppu_status = value,
+            3 => self.oam_addr = value,
+            4 => self.oam_data = value,
+            5 => self.ppu_scroll = value,
+            6 => self.ppu_addr = value,
+            7 => self.ppu_data = value,
             _ => panic!("unknown register: {register:#04X}")
         };
 
-        if could_write {
-            println!("PPU: set register: {register}, value: {value:#04X}");
-            println!("CPU cycle: {}", self.cpu_cycle_count);
-            if register == 0 || register == 1 || register == 5 || register == 6 {
-                exit(0);
-            }
-        }
+        println!("PPU: set register: {register}, value: {value:#04X}");
     }
 
-    pub fn step(&mut self, cycle_count: u64) {
-        self.cpu_cycle_count = cycle_count;
-
-
+    pub fn step(&mut self) {
         match self.ppu_cycle_count % 340 {
             0 => {},
             1..=256 => {

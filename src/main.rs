@@ -1,14 +1,10 @@
 mod emulator;
-mod rom;
-mod opcodes;
-mod bus;
-mod cpu;
-mod ppu;
+mod nes;
 
 use std::fs::File;
 use std::io::Read;
 use crate::emulator::Emulator;
-use crate::rom::Rom;
+use crate::nes::rom::Rom;
 
 
 fn main() {

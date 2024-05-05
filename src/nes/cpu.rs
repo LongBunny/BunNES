@@ -1,8 +1,9 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::thread::sleep;
+use std::time::{Duration, Instant};
 use bit::BitIndex;
-use crate::bus::Bus;
-use crate::opcodes::{AddrMode, OP_CODES, OpCode};
+use crate::nes::bus::Bus;
+use crate::nes::opcodes::{AddrMode, OP_CODES, OpCode};
+use crate::nes::rom::Rom;
 
 struct ProcessorStatus {
     /// [0] carry
@@ -110,14 +111,14 @@ pub struct Cpu {
     /// processor status
     ps: ProcessorStatus,
 
-    bus: Rc<RefCell<Bus>>,
+    bus: Bus,
 
     cycles_to_finish: u8,
 }
 
 
 impl Cpu {
-    pub fn new(bus: Rc<RefCell<Bus>>) -> Cpu {
+    pub fn new(rom: Rom) -> Cpu {
         Cpu {
             pc: 0,
             sp: 0,
@@ -126,11 +127,60 @@ impl Cpu {
             y: 0,
             ps: ProcessorStatus::new(),
 
-            bus,
+            bus: Bus::new(rom),
 
             cycles_to_finish: 0,
         }
     }
+
+    pub fn reset(&mut self) {
+        println!("reset!");
+        println!("rom size: {}", self.bus.rom_len());
+        let reset: u16 = self.bus.read_8(0xFFFC) as u16 | (self.bus.read_8(0xFFFD) as u16) << 8;
+        println!("reset vector: {:#04X}", reset);
+        self.set_pc(reset);
+    }
+
+    pub fn run(&mut self) {
+        let time_per_frame: Duration = Duration::from_secs_f32(1f32 / 60f32);
+        let mut now = Instant::now();
+        let mut frame_count: u64 = 0;
+        // frame every 16ms (60 fps)
+        loop {
+
+            // EMULATOR OWNS CPU, CPU OWNS BUS, BUS OWNS REST EZ
+            // NO MORE CIRCULAR SHITTYNESS
+
+
+            // 262 scanlines per frame
+            for scanline in 0..262 {
+                // 341 ppu cycles per scanline
+                for ppu_cycle in 0..341 {
+                    if ppu_cycle % 3 == 0 {
+                        self.step();
+                    }
+                    self.bus.step_ppu();
+                }
+            }
+
+
+            frame_count += 1;
+
+            if frame_count > 100 {
+                println!("100 frames");
+                break;
+            }
+
+            let time_elapsed = now.elapsed();
+            // println!("time elapsed: {:.3}ms", time_elapsed.as_secs_f32() * 1000f32);
+            if time_elapsed < time_per_frame {
+                sleep(time_per_frame - time_elapsed);
+            }
+            now = Instant::now();
+        }
+
+    }
+
 
     pub fn set_pc(&mut self, value: u16) {
         self.pc = value;
@@ -152,7 +202,7 @@ impl Cpu {
             return;
         }
 
-        let op_code = self.bus.borrow().read_8(self.pc);
+        let op_code = self.bus.read_8(self.pc);
         let inst = OP_CODES[op_code as usize];
         // println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
         let step = match inst {
@@ -220,7 +270,7 @@ impl Cpu {
 
     fn bne(&mut self) -> Step {
         let offset: i8 = unsafe {
-            std::mem::transmute(self.bus.borrow().read_8(self.pc + 1))
+            std::mem::transmute(self.bus.read_8(self.pc + 1))
         };
 
         if self.ps.zero() == false {
@@ -236,7 +286,7 @@ impl Cpu {
 
     fn bpl(&mut self) -> Step {
         let offset: i8 = unsafe {
-            std::mem::transmute(self.bus.borrow().read_8(self.pc + 1))
+            std::mem::transmute(self.bus.read_8(self.pc + 1))
         };
 
         if self.ps.negative() == false {
@@ -253,7 +303,7 @@ impl Cpu {
     fn ldx(&mut self, addr_mode: AddrMode) -> Step {
         match addr_mode {
             AddrMode::Immediate => {
-                let value = self.bus.borrow().read_8(self.pc + 1);
+                let value = self.bus.read_8(self.pc + 1);
                 self.x = value;
                 self.set_zero(value);
                 self.set_negative(value);
@@ -266,7 +316,7 @@ impl Cpu {
     fn ldy(&mut self, addr_mode: AddrMode) -> Step {
         match addr_mode {
             AddrMode::Immediate => {
-                let value = self.bus.borrow().read_8(self.pc + 1);
+                let value = self.bus.read_8(self.pc + 1);
                 self.y = value;
                 self.set_zero(value);
                 self.set_negative(value);
@@ -279,12 +329,12 @@ impl Cpu {
     fn lda(&mut self, addr_mode: AddrMode) -> Step {
         let result = match addr_mode {
             AddrMode::Absolute => {
-                let addr = self.bus.borrow().read_16(self.pc + 1);
-                let value = self.bus.borrow().read_8(addr);
+                let addr = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(addr);
                 (value, Step::next(3, 4))
             },
             AddrMode::Immediate => {
-                let value = self.bus.borrow().read_8(self.pc + 1);
+                let value = self.bus.read_8(self.pc + 1);
                 (value, Step::next(2, 2))
             },
             _ => panic!("unimplemented: lda {addr_mode:?}")
@@ -299,26 +349,26 @@ impl Cpu {
     fn sta(&mut self, addr_mode: AddrMode) -> Step {
         let result = match addr_mode {
             AddrMode::Absolute => {
-                let addr = self.bus.borrow().read_16(self.pc + 1);
+                let addr = self.bus.read_16(self.pc + 1);
                 (addr, Step::next(3, 4))
             },
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
 
-        self.bus.borrow_mut().write(result.0, self.acc);
+        self.bus.write(result.0, self.acc);
         result.1
     }
 
     fn stx(&mut self, addr_mode: AddrMode) -> Step {
         let result = match addr_mode {
             AddrMode::Absolute => {
-                let addr = self.bus.borrow().read_16(self.pc + 1);
+                let addr = self.bus.read_16(self.pc + 1);
                 (addr, Step::next(3, 4))
             },
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
 
-        self.bus.borrow_mut().write(result.0, self.x);
+        self.bus.write(result.0, self.x);
         result.1
     }
 }

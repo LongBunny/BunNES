@@ -1,5 +1,5 @@
-use crate::opcodes::AddrMode::*;
-use crate::opcodes::OpCode::*;
+use crate::nes::opcodes::AddrMode::*;
+use crate::nes::opcodes::OpCode::*;
 
 #[derive(Debug, Copy, Clone)]
 pub(crate) enum AddrMode {

@@ -1,21 +1,35 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::ppu::Ppu;
-use crate::rom::Rom;
+use crate::nes::ppu::Ppu;
+use crate::nes::rom::Rom;
+
+const RAM_CAP: usize = 2 * 1024;
+pub(crate) type Ram = [u8; RAM_CAP];
 
 pub struct Bus {
-    ram: Rc<crate::emulator::Ram>,
-    rom: Rc<Rom>,
-    ppu: Rc<RefCell<Ppu>>,
+    ppu: Ppu,
+    rom: Rom,
+    ram: Ram,
 }
 
 impl Bus {
-    pub fn new(ram: Rc<crate::emulator::Ram>, rom: Rc<Rom>, ppu: Rc<RefCell<Ppu>>) -> Bus {
+    pub fn new(rom: Rom) -> Bus {
+        let ram = [0u8; RAM_CAP];
+        let rom = rom;
+
+        let ppu = Ppu::new();
+
         Bus {
             ram,
             rom,
-            ppu
+            ppu,
         }
+    }
+
+    pub fn step_ppu(&mut self) {
+        self.ppu.step();
+    }
+
+    pub fn rom_len(&self) -> usize {
+        self.rom.prg().len()
     }
 
     pub fn read_8(&self, addr: u16) -> u8 {
@@ -32,7 +46,7 @@ impl Bus {
     pub fn write(&mut self, addr: u16, value: u8) {
         match addr {
             0x2000..=0x3FFF => {
-                self.ppu.borrow_mut().set_register((addr % 8) as u8, value);
+                self.ppu.set_register((addr % 8) as u8, value);
             }
             _ => unimplemented!("write for addr [{:#04X}]", addr)
         }
@@ -42,7 +56,7 @@ impl Bus {
         match addr {
             0x0000..=0x1FFF => self.ram[(addr % 0x07FF) as usize],
             0x2000..=0x3FFF => {
-                self.ppu.borrow().register((addr % 8) as u8)
+                self.ppu.register((addr % 8) as u8)
             },
             0x4000..=0x4017 => unimplemented!("APU"),
             0x4018..=0x401F => panic!("APU and IO. Should be disabled"),
