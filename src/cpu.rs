@@ -86,10 +86,10 @@ struct Step {
 }
 
 impl Step {
-    fn next(cycles: u8, pc_inc: u8) -> Step {
+    fn next(bytes: u8, cycles: u8) -> Step {
         Step {
             cycles,
-            pc_inc
+            pc_inc: bytes
         }
     }
 }
@@ -108,11 +108,13 @@ pub struct Cpu {
     y: u8,
     /// processor status
     ps: ProcessorStatus,
+
+    bus: Rc<Bus>
 }
 
 
 impl Cpu {
-    pub fn new() -> Cpu {
+    pub fn new(bus: Rc<Bus>) -> Cpu {
         Cpu {
             pc: 0,
             sp: 0,
@@ -120,34 +122,93 @@ impl Cpu {
             x: 0,
             y: 0,
             ps: ProcessorStatus::new(),
-        }
-    }
 
-    pub fn step(&mut self, bus: Rc<Bus>) {
-        let op_code = bus.read(self.pc);
-        let inst = OP_CODES[op_code as usize];
-        println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
-        let step = match inst {
-            Some(OpCode::Sei(addrMode)) => {
-                self.sei(addrMode)
-            }
-            _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
-        };
-        self.pc += step.pc_inc as u16;
+            bus,
+        }
     }
 
     pub fn set_pc(&mut self, value: u16) {
         self.pc = value;
     }
 
-    /// set interrupt disable
-    fn sei(&mut self, addr_mode: AddrMode) -> Step {
-        match addr_mode {
-            AddrMode::Implicit => {
-                self.ps.set_irqb(false);
-                Step::next(2, 1)
+
+
+    fn set_zero(&mut self, value: u8) {
+        self.ps.set_zero(value == 0);
+    }
+
+    fn set_negative(&mut self, value: u8) {
+        self.ps.set_negative(value.bit(7) == true);
+    }
+
+
+
+
+    pub fn step(&mut self) {
+        let op_code = self.bus.read_8(self.pc);
+        let inst = OP_CODES[op_code as usize];
+        println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
+        let step = match inst {
+            Some(OpCode::Sei) => {
+                self.sei()
             }
-            _ => panic!("unimplemented: SEI {addr_mode:?}")
+            Some(OpCode::Cld) => {
+                self.cld()
+            }
+            Some(OpCode::Txs) => {
+                self.txs()
+            }
+            Some(OpCode::Ldx(addr_mode)) => {
+                self.ldx(addr_mode)
+            }
+            Some(OpCode::Lda(addr_mode)) => {
+                self.lda(addr_mode)
+            }
+            _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
+        };
+        self.pc += step.pc_inc as u16;
+    }
+
+    /// set interrupt disable
+    fn sei(&mut self) -> Step {
+        self.ps.set_irqb(false);
+        Step::next(1, 2)
+    }
+
+    fn cld(&mut self) -> Step {
+        self.ps.set_decimal(false);
+        Step::next(1, 2)
+    }
+
+    fn txs(&mut self) -> Step {
+        self.sp = self.x;
+        Step::next(1, 2)
+    }
+
+    fn ldx(&mut self, addr_mode: AddrMode) -> Step {
+        match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                self.x = value;
+                self.set_zero(value);
+                self.set_negative(value);
+                Step::next(2, 2)
+            }
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        }
+    }
+
+    fn lda(&mut self, addr_mode: AddrMode) -> Step {
+        match addr_mode {
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(addr);
+                self.acc = value;
+                self.set_zero(value);
+                self.set_negative(value);
+                Step::next(3, 4)
+            }
+            _ => panic!("unimplemented: lda {addr_mode:?}")
         }
     }
 }

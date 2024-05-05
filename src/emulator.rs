@@ -18,8 +18,8 @@ impl Emulator {
     pub fn new(rom: Rom) -> Emulator {
         let ram = Rc::new([0u8; RAM_CAP]);
         let rom = Rc::new(rom);
-        let cpu = Cpu::new();
         let bus = Rc::new(Bus::new(ram.clone(), rom.clone()));
+        let cpu = Cpu::new(bus.clone());
 
         Emulator {
             rom,
@@ -32,12 +32,12 @@ impl Emulator {
     pub fn run(mut self) {
         println!("prg size: {}", self.rom.prg().len());
 
-        let reset: u16 = self.bus.read(0xFFFC) as u16 | (self.bus.read(0xFFFD) as u16) << 8;
+        let reset: u16 = self.bus.read_8(0xFFFC) as u16 | (self.bus.read_8(0xFFFD) as u16) << 8;
         println!("reset vector: {:#04X}", reset);
         self.cpu.set_pc(reset);
 
         loop {
-            self.cpu.step(self.bus.clone());
+            self.cpu.step();
         }
     }
 

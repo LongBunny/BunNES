@@ -3,6 +3,7 @@ mod rom;
 mod opcodes;
 mod bus;
 mod cpu;
+mod ppu;
 
 use std::fs::File;
 use std::io::Read;

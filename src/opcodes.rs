@@ -1,15 +1,21 @@
-
-use crate::opcodes::AddrMode::Implicit;
+use crate::opcodes::AddrMode::*;
+use crate::opcodes::OpCode::*;
 
 #[derive(Debug, Copy, Clone)]
 pub(crate) enum AddrMode {
     Abs,
-    Implicit
+    Implicit,
+    Immediate,
+    Absolute,
 }
 
 #[derive(Debug, Copy, Clone)]
 pub(crate) enum OpCode {
-    Sei(AddrMode)
+    Sei,
+    Cld,
+    Txs,
+    Ldx(AddrMode),
+    Lda(AddrMode),
 }
 
 pub static OP_CODES: [Option<(OpCode)>; 256] = [
@@ -133,7 +139,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x75
     None, // 0x76
     None, // 0x77
-    Some(OpCode::Sei(Implicit)), // 0x78
+    Some(Sei), // 0x78
     None, // 0x79
     None, // 0x7a
     None, // 0x7b
@@ -167,7 +173,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x97
     None, // 0x98
     None, // 0x99
-    None, // 0x9a
+    Some(Txs), // 0x9a
     None, // 0x9b
     None, // 0x9c
     None, // 0x9d
@@ -175,7 +181,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x9f
     None, // 0xa0
     None, // 0xa1
-    None, // 0xa2
+    Some(Ldx(Immediate)), // 0xa2
     None, // 0xa3
     None, // 0xa4
     None, // 0xa5
@@ -186,7 +192,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xaa
     None, // 0xab
     None, // 0xac
-    None, // 0xad
+    Some(Lda(Absolute)), // 0xad
     None, // 0xae
     None, // 0xaf
     None, // 0xb0
@@ -229,7 +235,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xd5
     None, // 0xd6
     None, // 0xd7
-    None, // 0xd8
+    Some(Cld), // 0xd8
     None, // 0xd9
     None, // 0xda
     None, // 0xdb

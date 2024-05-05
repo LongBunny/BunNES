@@ -14,11 +14,18 @@ impl Bus {
         }
     }
 
-    pub fn read(&self, addr: u16) -> u8 {
+    pub fn read_8(&self, addr: u16) -> u8 {
         self.map_addr(addr)
     }
 
-    pub fn write(&self, addr: u16) {
+    pub fn read_16(&self, addr: u16) -> u16 {
+        let lsb = self.map_addr(addr);
+        let msb = self.map_addr(addr + 1);
+
+        ((msb as u16) << 8) | lsb as u16
+    }
+
+    pub fn write(&self, addr: u16, value: u8) {
         unimplemented!("bus write is not implemented")
     }
 
