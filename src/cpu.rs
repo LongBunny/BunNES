@@ -142,10 +142,7 @@ impl Cpu {
         self.ps.set_negative(value.bit(7) == true);
     }
 
-
-
-
-    pub fn step(&mut self) {
+    pub fn step(&mut self) -> u8 {
         let op_code = self.bus.borrow().read_8(self.pc);
         let inst = OP_CODES[op_code as usize];
         println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
@@ -186,6 +183,7 @@ impl Cpu {
             _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
         };
         self.pc += step.pc_inc as u16;
+        step.cycles
     }
 
     /// set interrupt disable

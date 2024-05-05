@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Instant;
 use crate::bus::Bus;
 use crate::cpu::Cpu;
 use crate::ppu::Ppu;
@@ -43,25 +44,21 @@ impl Emulator {
         println!("reset vector: {:#04X}", reset);
         self.cpu.set_pc(reset);
 
-        let mut count = 0;
+
+        let mut cpu_cycles: u64 = 0;
         loop {
-            self.cpu.step();
-            count += 1;
-            if count >= 100 {
-                println!("100 iterations pag");
+            let cycles_passed = self.cpu.step();
+            cpu_cycles += cycles_passed as u64;
+
+            self.ppu.borrow_mut().step(cpu_cycles);
+            self.ppu.borrow_mut().step(cpu_cycles);
+            self.ppu.borrow_mut().step(cpu_cycles);
+
+            if cpu_cycles > 100_000 {
+                println!("over 100_000 iterations");
                 break;
             }
+
         }
     }
-
-    fn parse_rom(&mut self) {
-
-    }
 }
-
-
-
-
-
-
-
