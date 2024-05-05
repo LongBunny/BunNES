@@ -18,6 +18,7 @@ pub(crate) enum OpCode {
     Ldx(AddrMode),
     Lda(AddrMode),
     Bpl(AddrMode),
+    Sta(AddrMode),
 }
 
 pub static OP_CODES: [Option<(OpCode)>; 256] = [
@@ -162,7 +163,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x8a
     None, // 0x8b
     None, // 0x8c
-    None, // 0x8d
+    Some(Sta(Absolute)), // 0x8d
     None, // 0x8e
     None, // 0x8f
     None, // 0x90
@@ -190,7 +191,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xa6
     None, // 0xa7
     None, // 0xa8
-    None, // 0xa9
+    Some(Lda(Immediate)), // 0xa9
     None, // 0xaa
     None, // 0xab
     None, // 0xac

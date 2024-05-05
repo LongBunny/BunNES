@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use bit::BitIndex;
 use crate::bus::Bus;
@@ -109,12 +110,12 @@ pub struct Cpu {
     /// processor status
     ps: ProcessorStatus,
 
-    bus: Rc<Bus>
+    bus: Rc<RefCell<Bus>>
 }
 
 
 impl Cpu {
-    pub fn new(bus: Rc<Bus>) -> Cpu {
+    pub fn new(bus: Rc<RefCell<Bus>>) -> Cpu {
         Cpu {
             pc: 0,
             sp: 0,
@@ -145,7 +146,7 @@ impl Cpu {
 
 
     pub fn step(&mut self) {
-        let op_code = self.bus.read_8(self.pc);
+        let op_code = self.bus.borrow().read_8(self.pc);
         let inst = OP_CODES[op_code as usize];
         println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
         let step = match inst {
@@ -163,6 +164,9 @@ impl Cpu {
             }
             Some(OpCode::Lda(addr_mode)) => {
                 self.lda(addr_mode)
+            }
+            Some(OpCode::Sta(addr_mode)) => {
+                self.sta(addr_mode)
             }
             Some(OpCode::Bpl(AddrMode::Relative)) => {
                 self.bpl()
@@ -190,7 +194,7 @@ impl Cpu {
 
     fn bpl(&mut self) -> Step {
         let offset: i8 = unsafe {
-            std::mem::transmute(self.bus.read_8(self.pc + 1))
+            std::mem::transmute(self.bus.borrow().read_8(self.pc + 1))
         };
 
         if self.ps.negative() == false {
@@ -207,7 +211,7 @@ impl Cpu {
     fn ldx(&mut self, addr_mode: AddrMode) -> Step {
         match addr_mode {
             AddrMode::Immediate => {
-                let value = self.bus.read_8(self.pc + 1);
+                let value = self.bus.borrow().read_8(self.pc + 1);
                 self.x = value;
                 self.set_zero(value);
                 self.set_negative(value);
@@ -218,16 +222,35 @@ impl Cpu {
     }
 
     fn lda(&mut self, addr_mode: AddrMode) -> Step {
-        match addr_mode {
+        let result = match addr_mode {
             AddrMode::Absolute => {
-                let addr = self.bus.read_16(self.pc + 1);
-                let value = self.bus.read_8(addr);
-                self.acc = value;
-                self.set_zero(value);
-                self.set_negative(value);
-                Step::next(3, 4)
-            }
+                let addr = self.bus.borrow().read_16(self.pc + 1);
+                let value = self.bus.borrow().read_8(addr);
+                (value, Step::next(3, 4))
+            },
+            AddrMode::Immediate => {
+                let value = self.bus.borrow().read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            },
             _ => panic!("unimplemented: lda {addr_mode:?}")
-        }
+        };
+
+        self.acc = result.0;
+        self.set_zero(result.0);
+        self.set_negative(result.0);
+        result.1
+    }
+
+    fn sta(&mut self, addr_mode: AddrMode) -> Step {
+        let result = match addr_mode {
+            AddrMode::Absolute => {
+                let addr = self.bus.borrow().read_16(self.pc + 1);
+                (addr, Step::next(3, 4))
+            },
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        };
+
+        self.bus.borrow_mut().write(result.0, self.acc);
+        result.1
     }
 }

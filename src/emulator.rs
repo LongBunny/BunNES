@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use crate::bus::Bus;
 use crate::cpu::Cpu;
@@ -12,15 +13,16 @@ pub struct Emulator {
     cpu: Cpu,
     rom: Rc<Rom>,
     ram: Rc<Ram>,
-    bus: Rc<Bus>
+    ppu: Rc<RefCell<Ppu>>,
+    bus: Rc<RefCell<Bus>>
 }
 
 impl Emulator {
     pub fn new(rom: Rom) -> Emulator {
         let ram = Rc::new([0u8; RAM_CAP]);
         let rom = Rc::new(rom);
-        let ppu = Rc::new(Ppu::new());
-        let bus = Rc::new(Bus::new(ram.clone(), rom.clone(), ppu.clone()));
+        let ppu = Rc::new(RefCell::new(Ppu::new()));
+        let bus = Rc::new(RefCell::new(Bus::new(ram.clone(), rom.clone(), ppu.clone())));
 
 
         let cpu = Cpu::new(bus.clone());
@@ -29,6 +31,7 @@ impl Emulator {
             rom,
             ram,
             cpu,
+            ppu,
             bus
         }
     }
@@ -36,7 +39,7 @@ impl Emulator {
     pub fn run(mut self) {
         println!("prg size: {}", self.rom.prg().len());
 
-        let reset: u16 = self.bus.read_8(0xFFFC) as u16 | (self.bus.read_8(0xFFFD) as u16) << 8;
+        let reset: u16 = self.bus.borrow().read_8(0xFFFC) as u16 | (self.bus.borrow().read_8(0xFFFD) as u16) << 8;
         println!("reset vector: {:#04X}", reset);
         self.cpu.set_pc(reset);
 

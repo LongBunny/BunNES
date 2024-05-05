@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use crate::ppu::Ppu;
 use crate::rom::Rom;
@@ -5,11 +6,11 @@ use crate::rom::Rom;
 pub struct Bus {
     ram: Rc<crate::emulator::Ram>,
     rom: Rc<Rom>,
-    ppu: Rc<Ppu>,
+    ppu: Rc<RefCell<Ppu>>,
 }
 
 impl Bus {
-    pub fn new(ram: Rc<crate::emulator::Ram>, rom: Rc<Rom>, ppu: Rc<Ppu>) -> Bus {
+    pub fn new(ram: Rc<crate::emulator::Ram>, rom: Rc<Rom>, ppu: Rc<RefCell<Ppu>>) -> Bus {
         Bus {
             ram,
             rom,
@@ -28,15 +29,20 @@ impl Bus {
         ((msb as u16) << 8) | lsb as u16
     }
 
-    pub fn write(&self, addr: u16, value: u8) {
-        unimplemented!("bus write is not implemented")
+    pub fn write(&mut self, addr: u16, value: u8) {
+        match addr {
+            0x2000..=0x3FFF => {
+                self.ppu.borrow_mut().set_register((addr % 8) as u8, value);
+            }
+            _ => unimplemented!("write for addr [{:#04X}]", addr)
+        }
     }
 
     fn map_addr(&self, addr: u16) -> u8 {
         match addr {
             0x0000..=0x1FFF => self.ram[(addr % 0x07FF) as usize],
             0x2000..=0x3FFF => {
-                self.ppu.register((addr % 8) as u8)
+                self.ppu.borrow().register((addr % 8) as u8)
             },
             0x4000..=0x4017 => unimplemented!("APU"),
             0x4018..=0x401F => panic!("APU and IO. Should be disabled"),
