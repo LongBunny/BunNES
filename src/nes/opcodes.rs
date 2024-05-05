@@ -7,6 +7,7 @@ pub(crate) enum AddrMode {
     Implicit,
     Immediate,
     Absolute,
+    AbsoluteX,
     Relative,
 }
 
@@ -15,9 +16,12 @@ pub(crate) enum OpCode {
     Sei,
     Cld,
     Txs,
+    Cpx(AddrMode),
     Bne,
     Bpl(AddrMode),
+    Inx,
     Dex,
+    Dey,
     Ldx(AddrMode),
     Ldy(AddrMode),
     Lda(AddrMode),
@@ -162,7 +166,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x85
     None, // 0x86
     None, // 0x87
-    None, // 0x88
+    Some(Dey), // 0x88
     None, // 0x89
     None, // 0x8a
     None, // 0x8b
@@ -215,7 +219,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xba
     None, // 0xbb
     None, // 0xbc
-    None, // 0xbd
+    Some(Lda(AbsoluteX)), // 0xbd
     None, // 0xbe
     None, // 0xbf
     None, // 0xc0
@@ -250,7 +254,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xdd
     None, // 0xde
     None, // 0xdf
-    None, // 0xe0
+    Some(Cpx(Immediate)), // 0xe0
     None, // 0xe1
     None, // 0xe2
     None, // 0xe3
@@ -258,7 +262,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xe5
     None, // 0xe6
     None, // 0xe7
-    None, // 0xe8
+    Some(Inx), // 0xe8
     None, // 0xe9
     None, // 0xea
     None, // 0xeb
