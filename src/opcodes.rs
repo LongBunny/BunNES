@@ -1,5 +1,16 @@
-use crate::emulator::AddrMode::Implicit;
-use crate::emulator::{OpCode};
+
+use crate::opcodes::AddrMode::Implicit;
+
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum AddrMode {
+    Abs,
+    Implicit
+}
+
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum OpCode {
+    Sei(AddrMode)
+}
 
 pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x00

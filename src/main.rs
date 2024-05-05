@@ -1,6 +1,8 @@
 mod emulator;
 mod rom;
 mod opcodes;
+mod bus;
+mod cpu;
 
 use std::fs::File;
 use std::io::Read;
