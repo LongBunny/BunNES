@@ -40,8 +40,14 @@ impl Emulator {
         println!("reset vector: {:#04X}", reset);
         self.cpu.set_pc(reset);
 
+        let mut count = 0;
         loop {
             self.cpu.step();
+            count += 1;
+            if count >= 100 {
+                println!("100 iterations pag");
+                break;
+            }
         }
     }
 

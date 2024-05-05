@@ -34,8 +34,7 @@ impl Bus {
 
     fn map_addr(&self, addr: u16) -> u8 {
         match addr {
-            0x0000..=0x07FF => self.ram[addr as usize],
-            0x0800..=0x1FFF => unimplemented!("RAM mirrors"),
+            0x0000..=0x1FFF => self.ram[(addr % 0x07FF) as usize],
             0x2000..=0x3FFF => {
                 self.ppu.register((addr % 8) as u8)
             },
@@ -50,10 +49,7 @@ impl Bus {
                             0x4000 => {
                                 // 16k rom
                                 // subtract rom location and mirror upper 0x4000 bytes
-                                let mut addr = addr as usize -0x8000;
-                                if addr > 0x4000 {
-                                    addr -= 0x4000;
-                                }
+                                let mut addr = (addr as usize -0x8000) % 0x4000;
                                 self.rom.prg()[addr]
                             },
                             0x8000 => {

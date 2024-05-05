@@ -164,6 +164,9 @@ impl Cpu {
             Some(OpCode::Lda(addr_mode)) => {
                 self.lda(addr_mode)
             }
+            Some(OpCode::Bpl(AddrMode::Relative)) => {
+                self.bpl()
+            }
             _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
         };
         self.pc += step.pc_inc as u16;
@@ -183,6 +186,22 @@ impl Cpu {
     fn txs(&mut self) -> Step {
         self.sp = self.x;
         Step::next(1, 2)
+    }
+
+    fn bpl(&mut self) -> Step {
+        let offset: i8 = unsafe {
+            std::mem::transmute(self.bus.read_8(self.pc + 1))
+        };
+
+        if self.ps.negative() == false {
+            // this is cheating :)
+            let mut addr = self.pc as i32;
+             addr += offset as i32;
+            self.pc = addr as u16;
+        }
+        // todo: cycles can be 2, 3 or 4
+        // https://www.nesdev.org/obelisk-6502-guide/reference.html#BPL
+        Step::next(2, 2)
     }
 
     fn ldx(&mut self, addr_mode: AddrMode) -> Step {

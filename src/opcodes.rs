@@ -7,6 +7,7 @@ pub(crate) enum AddrMode {
     Implicit,
     Immediate,
     Absolute,
+    Relative,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -16,6 +17,7 @@ pub(crate) enum OpCode {
     Txs,
     Ldx(AddrMode),
     Lda(AddrMode),
+    Bpl(AddrMode),
 }
 
 pub static OP_CODES: [Option<(OpCode)>; 256] = [
@@ -35,7 +37,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x0d
     None, // 0x0e
     None, // 0x0f
-    None, // 0x10
+    Some(Bpl(Relative)), // 0x10
     None, // 0x11
     None, // 0x12
     None, // 0x13
