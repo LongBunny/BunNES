@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::time::Instant;
+use std::thread::sleep;
+use std::time::{Duration, Instant};
 use crate::bus::Bus;
 use crate::cpu::Cpu;
 use crate::ppu::Ppu;
@@ -45,20 +46,41 @@ impl Emulator {
         self.cpu.set_pc(reset);
 
 
+        let time_per_frame: Duration = Duration::from_secs_f32(1f32 / 60f32);
+        let mut now = Instant::now();
+        let mut frame_count: u64 = 0;
         let mut cpu_cycles: u64 = 0;
+
+        // frame every 16ms (60 fps)
         loop {
-            let cycles_passed = self.cpu.step();
-            cpu_cycles += cycles_passed as u64;
 
-            self.ppu.borrow_mut().step(cpu_cycles);
-            self.ppu.borrow_mut().step(cpu_cycles);
-            self.ppu.borrow_mut().step(cpu_cycles);
 
-            if cpu_cycles > 100_000 {
-                println!("over 100_000 iterations");
+            // 262 scanlines per frame
+            for scanline in 0..262 {
+                // 341 ppu cycles per scanline
+                for ppu_cycle in 0..341 {
+                    if ppu_cycle % 3 == 0 {
+                        self.cpu.step();
+                        cpu_cycles += 1;
+                    }
+                    self.ppu.borrow_mut().step(cpu_cycles);
+                }
+            }
+
+
+            frame_count += 1;
+
+            if frame_count > 100 {
+                println!("100 frames");
                 break;
             }
 
+            let time_elapsed = now.elapsed();
+            println!("time elapsed: {:.3}ms", time_elapsed.as_secs_f32() * 1000f32);
+            if time_elapsed < time_per_frame {
+                sleep(time_per_frame - time_elapsed);
+            }
+            now = Instant::now();
         }
     }
 }

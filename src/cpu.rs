@@ -110,7 +110,9 @@ pub struct Cpu {
     /// processor status
     ps: ProcessorStatus,
 
-    bus: Rc<RefCell<Bus>>
+    bus: Rc<RefCell<Bus>>,
+
+    cycles_to_finish: u8,
 }
 
 
@@ -125,6 +127,8 @@ impl Cpu {
             ps: ProcessorStatus::new(),
 
             bus,
+
+            cycles_to_finish: 0,
         }
     }
 
@@ -142,10 +146,15 @@ impl Cpu {
         self.ps.set_negative(value.bit(7) == true);
     }
 
-    pub fn step(&mut self) -> u8 {
+    pub fn step(&mut self) {
+        if self.cycles_to_finish > 0 {
+            self.cycles_to_finish -= 1;
+            return;
+        }
+
         let op_code = self.bus.borrow().read_8(self.pc);
         let inst = OP_CODES[op_code as usize];
-        println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
+        // println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
         let step = match inst {
             Some(OpCode::Sei) => {
                 self.sei()
@@ -183,7 +192,7 @@ impl Cpu {
             _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
         };
         self.pc += step.pc_inc as u16;
-        step.cycles
+        self.cycles_to_finish = step.cycles;
     }
 
     /// set interrupt disable
