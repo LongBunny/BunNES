@@ -1,38 +1,73 @@
+use std::iter::Cycle;
+use std::rc::Rc;
 use bit::BitIndex;
 use crate::opcodes::OP_CODES;
 use crate::rom::Rom;
 
 const RAM_CAP: usize = 2 * 1024;
+type Ram = [u8; RAM_CAP];
 
 pub struct Emulator {
     cpu: Cpu,
-    rom: Rom,
-    ram: [u8; RAM_CAP],
+    rom: Rc<Rom>,
+    ram: Rc<Ram>,
+    bus: Rc<Bus>
 }
 
 impl Emulator {
     pub fn new(rom: Rom) -> Emulator {
+        let ram = Rc::new([0u8; RAM_CAP]);
+        let rom = Rc::new(rom);
+        let cpu = Cpu::new();
+        let bus = Rc::new(Bus::new(ram.clone(), rom.clone()));
+
         Emulator {
             rom,
-            ram: [0u8; RAM_CAP],
-            cpu: Cpu::new(),
+            ram,
+            cpu,
+            bus
         }
     }
 
     pub fn run(mut self) {
         println!("prg size: {}", self.rom.prg().len());
 
-        let reset: u16 = self.map_addr(0xFFFC) as u16 | (self.map_addr(0xFFFD) as u16) << 8;
+        let reset: u16 = self.bus.map_addr(0xFFFC) as u16 | (self.bus.map_addr(0xFFFD) as u16) << 8;
         println!("reset vector: {:#04X}", reset);
         self.cpu.pc = reset;
-        self.cpu.step();
-        // loop {
-        //     self.cpu.step(&self);
-        //     panic!("eh");
-        // }
+
+        loop {
+            self.cpu.step(self.bus.clone());
+        }
     }
 
     fn parse_rom(&mut self) {
+
+    }
+
+
+}
+
+struct Bus {
+    ram: Rc<Ram>,
+    rom: Rc<Rom>,
+}
+
+impl Bus {
+    fn new(ram: Rc<Ram>, rom: Rc<Rom>) -> Bus {
+        Bus {
+            ram,
+            rom
+        }
+    }
+}
+
+impl Bus {
+    pub fn read(addr: u16) -> u8 {
+        0
+    }
+
+    pub fn write(addr: u16) {
 
     }
 
@@ -73,20 +108,6 @@ impl Emulator {
             },
             _ => panic!("no matching address")
         }
-    }
-}
-
-struct Bus {
-
-}
-
-impl Bus {
-    fn read(addr: u16) -> u8 {
-        0
-    }
-
-    fn write(addr: u16) {
-
     }
 }
 
@@ -167,6 +188,31 @@ impl ProcessorStatus {
 
 }
 
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum AddrMode {
+    Abs,
+    Implicit
+}
+
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum OpCode {
+    Sei(AddrMode)
+}
+
+struct Step {
+    cycles: u8,
+    pc_inc: u8,
+}
+
+impl Step {
+    fn next(cycles: u8, pc_inc: u8) -> Step {
+        Step {
+            cycles,
+            pc_inc
+        }
+    }
+}
+
 #[allow(unused_variables, dead_code)]
 struct Cpu {
     /// program counter
@@ -184,19 +230,6 @@ struct Cpu {
 }
 
 
-#[derive(Debug, Copy, Clone)]
-pub(crate) enum AddrMode {
-    Abs,
-    Implicit
-}
-
-#[derive(Debug, Copy, Clone)]
-pub(crate) enum OpCode {
-    Sei(AddrMode)
-}
-
-type Cycle = u8;
-
 impl Cpu {
     fn new() -> Cpu {
         Cpu {
@@ -209,27 +242,28 @@ impl Cpu {
         }
     }
 
-    fn step(&mut self) {
-        let inst_num = map_addr(self.pc);
-        let inst = OP_CODES[inst_num as usize];
-        let cycles = match inst {
+    fn step(&mut self, bus: Rc<Bus>) {
+        let op_code = bus.map_addr(self.pc);
+        let inst = OP_CODES[op_code as usize];
+        println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
+        let step = match inst {
             Some(OpCode::Sei(addrMode)) => {
                 self.sei(addrMode)
             }
-            _ => panic!("unknown instruction: {inst_num:#04X} {inst:?}")
+            _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
         };
+        self.pc += step.pc_inc as u16;
     }
 
     /// set interrupt disable
-    fn sei(&mut self, addr_mode: AddrMode) -> Cycle {
+    fn sei(&mut self, addr_mode: AddrMode) -> Step {
         match addr_mode {
             AddrMode::Implicit => {
                 self.ps.set_irqb(false);
-                2
+                Step::next(2, 1)
             }
             _ => panic!("unimplemented: SEI {addr_mode:?}")
         }
-
     }
 }
 
