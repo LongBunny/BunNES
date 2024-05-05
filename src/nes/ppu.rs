@@ -1,3 +1,6 @@
+use std::process::exit;
+use bit::BitIndex;
+
 const PPU_INIT_TIME: u64 = 29658;
 const MAX_DOT_COUNT: u32 = 283 * 242;
 
@@ -39,11 +42,17 @@ impl Ppu {
         }
     }
 
-    pub fn register(&self, register: u8) -> u8 {
+    pub fn register(&mut self, register: u8) -> u8 {
         let value = match register {
             0 => self.ppu_ctrl,
             1 => self.ppu_mask,
-            2 => self.ppu_status,
+            2 => {
+                let ppu_status = self.ppu_status;
+                // set vblank to false after read
+                // https://www.nesdev.org/wiki/PPU_registers#PPUSTATUS
+                self.ppu_status.set_bit(7, false);
+                ppu_status
+            },
             3 => self.oam_addr,
             4 => self.oam_data,
             5 => self.ppu_scroll,
@@ -71,26 +80,48 @@ impl Ppu {
             _ => panic!("unknown register: {register:#04X}")
         };
 
-        println!("PPU: set register: {register}, value: {value:#04X}");
+        // println!("PPU: set register: {register}, value: {value:#04X}");
     }
 
-    pub fn step(&mut self) {
-        match self.ppu_cycle_count % 340 {
-            0 => {},
-            1..=256 => {
-
-            }
-            256..=320 => {
-
+    pub fn step(&mut self, scanline: u64) {
+        let scanline = scanline % 262;
+        match scanline {
+            0..=239 => {
+                // visible scanlines
+                match self.ppu_cycle_count % 340 {
+                    0 => {
+                        // idle cycle
+                    },
+                    1..=256 => {
+                        // fetching data for tiles
+                    },
+                    257..=320 => {
+                        // next scanline tile data fetch
+                    },
+                    321..=336 => {
+                        // first two tiles for next scanline
+                    },
+                    337..=340 => {
+                        // unknown fetches
+                    },
+                    _ => panic!("ppu cycle not matched: {} [{}]", self.ppu_cycle_count, self.ppu_cycle_count % 340)
+                }
             },
-            321..=336 => {
-
+            240 => {
             },
-            337..=340 => {
-
+            241..=260 => {
+                if self.ppu_cycle_count % 340 == 1 {
+                    self.ppu_status.set_bit(7, true);
+                }
+            },
+            261 => {
+                // or -1
+                // dummy
+                if self.ppu_cycle_count % 340 == 1 {
+                    self.ppu_status.set_bit(7, false);
+                }
             }
-
-            _ => {} //panic!("cycle count not handled: {}", self.ppu_cycle_count)
+            _ => panic!("scanline not matched: {scanline}")
         }
 
         self.ppu_cycle_count += 1;

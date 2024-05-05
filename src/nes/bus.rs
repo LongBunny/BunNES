@@ -24,19 +24,19 @@ impl Bus {
         }
     }
 
-    pub fn step_ppu(&mut self) {
-        self.ppu.step();
+    pub fn step_ppu(&mut self, scanline: u64) {
+        self.ppu.step(scanline);
     }
 
     pub fn rom_len(&self) -> usize {
         self.rom.prg().len()
     }
 
-    pub fn read_8(&self, addr: u16) -> u8 {
+    pub fn read_8(&mut self, addr: u16) -> u8 {
         self.map_addr(addr)
     }
 
-    pub fn read_16(&self, addr: u16) -> u16 {
+    pub fn read_16(&mut self, addr: u16) -> u16 {
         let lsb = self.map_addr(addr);
         let msb = self.map_addr(addr + 1);
 
@@ -52,7 +52,9 @@ impl Bus {
         }
     }
 
-    fn map_addr(&self, addr: u16) -> u8 {
+    fn map_addr(&mut self, addr: u16) -> u8 {
+        // TODO: replace with mapper
+        // mapper 000 hardcoded
         match addr {
             0x0000..=0x1FFF => self.ram[(addr % 0x07FF) as usize],
             0x2000..=0x3FFF => {

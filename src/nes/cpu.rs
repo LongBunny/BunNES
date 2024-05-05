@@ -159,7 +159,7 @@ impl Cpu {
                     if ppu_cycle % 3 == 0 {
                         self.step();
                     }
-                    self.bus.step_ppu();
+                    self.bus.step_ppu(scanline);
                 }
             }
 
