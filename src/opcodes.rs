@@ -15,10 +15,14 @@ pub(crate) enum OpCode {
     Sei,
     Cld,
     Txs,
-    Ldx(AddrMode),
-    Lda(AddrMode),
+    Bne,
     Bpl(AddrMode),
+    Dex,
+    Ldx(AddrMode),
+    Ldy(AddrMode),
+    Lda(AddrMode),
     Sta(AddrMode),
+    Stx(AddrMode),
 }
 
 pub static OP_CODES: [Option<(OpCode)>; 256] = [
@@ -164,7 +168,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x8b
     None, // 0x8c
     Some(Sta(Absolute)), // 0x8d
-    None, // 0x8e
+    Some(Stx(Absolute)), // 0x8e
     None, // 0x8f
     None, // 0x90
     None, // 0x91
@@ -182,7 +186,7 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0x9d
     None, // 0x9e
     None, // 0x9f
-    None, // 0xa0
+    Some(Ldy(Immediate)), // 0xa0
     None, // 0xa1
     Some(Ldx(Immediate)), // 0xa2
     None, // 0xa3
@@ -224,13 +228,13 @@ pub static OP_CODES: [Option<(OpCode)>; 256] = [
     None, // 0xc7
     None, // 0xc8
     None, // 0xc9
-    None, // 0xca
+    Some(Dex), // 0xca
     None, // 0xcb
     None, // 0xcc
     None, // 0xcd
     None, // 0xce
     None, // 0xcf
-    None, // 0xd0
+    Some(Bne), // 0xd0
     None, // 0xd1
     None, // 0xd2
     None, // 0xd3

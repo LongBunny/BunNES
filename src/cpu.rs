@@ -156,11 +156,23 @@ impl Cpu {
             Some(OpCode::Cld) => {
                 self.cld()
             }
+            Some(OpCode::Bne) => {
+                self.bne()
+            },
+            Some(OpCode::Bpl(AddrMode::Relative)) => {
+                self.bpl()
+            }
             Some(OpCode::Txs) => {
                 self.txs()
             }
+            Some(OpCode::Dex) => {
+                self.dex()
+            }
             Some(OpCode::Ldx(addr_mode)) => {
                 self.ldx(addr_mode)
+            }
+            Some(OpCode::Ldy(addr_mode)) => {
+                self.ldy(addr_mode)
             }
             Some(OpCode::Lda(addr_mode)) => {
                 self.lda(addr_mode)
@@ -168,8 +180,8 @@ impl Cpu {
             Some(OpCode::Sta(addr_mode)) => {
                 self.sta(addr_mode)
             }
-            Some(OpCode::Bpl(AddrMode::Relative)) => {
-                self.bpl()
+            Some(OpCode::Stx(addr_mode)) => {
+                self.stx(addr_mode)
             }
             _ => panic!("unknown instruction: {op_code:#04X} {inst:?}")
         };
@@ -188,8 +200,31 @@ impl Cpu {
     }
 
     fn txs(&mut self) -> Step {
-        self.sp = self.x;
+            self.sp = self.x;
+            Step::next(1, 2)
+    }
+
+    fn dex(&mut self) -> Step {
+        self.x = self.x.wrapping_sub(1);
+        self.set_zero(self.x);
+        self.set_negative(self.x);
         Step::next(1, 2)
+    }
+
+    fn bne(&mut self) -> Step {
+        let offset: i8 = unsafe {
+            std::mem::transmute(self.bus.borrow().read_8(self.pc + 1))
+        };
+
+        if self.ps.zero() == false {
+            // this is cheating :)
+            let mut addr = self.pc as i32;
+            addr += offset as i32;
+            self.pc = addr as u16;
+        }
+        // todo: cycles can be 2, 3 or 4
+        // https://www.nesdev.org/obelisk-6502-guide/reference.html#BNE
+        Step::next(2, 2)
     }
 
     fn bpl(&mut self) -> Step {
@@ -213,6 +248,19 @@ impl Cpu {
             AddrMode::Immediate => {
                 let value = self.bus.borrow().read_8(self.pc + 1);
                 self.x = value;
+                self.set_zero(value);
+                self.set_negative(value);
+                Step::next(2, 2)
+            }
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        }
+    }
+
+    fn ldy(&mut self, addr_mode: AddrMode) -> Step {
+        match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.borrow().read_8(self.pc + 1);
+                self.y = value;
                 self.set_zero(value);
                 self.set_negative(value);
                 Step::next(2, 2)
@@ -251,6 +299,19 @@ impl Cpu {
         };
 
         self.bus.borrow_mut().write(result.0, self.acc);
+        result.1
+    }
+
+    fn stx(&mut self, addr_mode: AddrMode) -> Step {
+        let result = match addr_mode {
+            AddrMode::Absolute => {
+                let addr = self.bus.borrow().read_16(self.pc + 1);
+                (addr, Step::next(3, 4))
+            },
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        };
+
+        self.bus.borrow_mut().write(result.0, self.x);
         result.1
     }
 }

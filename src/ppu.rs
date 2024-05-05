@@ -18,7 +18,7 @@ impl Ppu {
         Ppu {
             ppu_ctrl: 0,
             ppu_mask: 0,
-            ppu_status: 0x80,
+            ppu_status: 0,
             oam_addr: 0,
             oam_data: 0,
             ppu_scroll: 0,
@@ -59,5 +59,9 @@ impl Ppu {
         };
 
         println!("PPU: set register: {register}, value: {value:#04X}");
+    }
+
+    pub fn step(&mut self) {
+
     }
 }
