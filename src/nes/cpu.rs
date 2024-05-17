@@ -148,10 +148,6 @@ impl Cpu {
         // frame every 16ms (60 fps)
         loop {
 
-            // EMULATOR OWNS CPU, CPU OWNS BUS, BUS OWNS REST EZ
-            // NO MORE CIRCULAR SHITTYNESS
-
-
             // 262 scanlines per frame
             for scanline in 0..262 {
                 // 341 ppu cycles per scanline
@@ -421,9 +417,9 @@ impl Cpu {
 
     /// returns address with x offset and if it needed an extra cycle
     fn add_absolute_x(&self, addr: u16) -> (u16, u8) {
-        let page_index = addr % 0xFF;
+        let page_index =  (addr & 0xFF00) / 256;
         let addr = addr.wrapping_add(self.x as u16);
-        let extra_step = if page_index != (addr % 0xFF) { 1 } else { 0 };
+        let extra_step = if page_index != ((addr & 0xFF00) / 256) { 1 } else { 0 };
         (addr, extra_step)
     }
 }
