@@ -1,5 +1,6 @@
 mod emulator;
 mod nes;
+mod gui;
 
 use std::fs::File;
 use std::io::Read;
