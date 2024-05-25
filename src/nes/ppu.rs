@@ -1,5 +1,10 @@
 use std::process::exit;
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use bit::BitIndex;
+use rand::random;
+use crate::nes::cpu::{HEIGHT, RenderImage, WIDTH};
+use crate::nes::rom::Cartridge;
 
 const PPU_INIT_TIME: u64 = 29658;
 const MAX_DOT_COUNT: u32 = 283 * 242;
@@ -17,14 +22,39 @@ pub struct Ppu {
     ppu_data: u8,
     oam_dma: u8,
 
+    cartridge: Arc<Cartridge>,
+
+    pub(crate) image: Arc<Mutex<RenderImage>>,
+
     cpu_cycle_count: u64,
     ppu_cycle_count: u64,
     dot_count: u64,
 }
 
+struct PatternTable {
+    tbl: [u8; 256 * 16 * 2],
+}
+
+struct NameTable {
+    tbl: [u8; 1024],
+}
+
+struct AttributeTable {
+    tbl: [u8; 64],
+}
+
+struct OAM {
+    tbl: [u8; 64 * 4],
+}
+
+struct Palette {
+
+}
+
 
 impl Ppu {
-    pub fn new() -> Ppu {
+    pub fn new(cartridge: Arc<Cartridge>, image: Arc<Mutex<RenderImage>>) -> Ppu {
+
         Ppu {
             ppu_ctrl: 0,
             ppu_mask: 0,
@@ -35,6 +65,10 @@ impl Ppu {
             ppu_addr: 0,
             ppu_data: 0,
             oam_dma: 0,
+
+            cartridge,
+
+            image,
 
             cpu_cycle_count: 0,
             ppu_cycle_count: 0,
@@ -106,6 +140,8 @@ impl Ppu {
                     },
                     _ => panic!("ppu cycle not matched: {} [{}]", self.ppu_cycle_count, self.ppu_cycle_count % 340)
                 }
+
+
             },
             240 => {
             },

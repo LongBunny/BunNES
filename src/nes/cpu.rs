@@ -1,9 +1,18 @@
+use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use bit::BitIndex;
+use rand::random;
 use crate::nes::bus::Bus;
 use crate::nes::opcodes::{AddrMode, OP_CODES, OpCode};
-use crate::nes::rom::Rom;
+use crate::nes::rom::Cartridge;
+
+
+pub const WIDTH: u32 = 256 + 100;
+pub const HEIGHT: u32 = 240;
+
+pub type RenderImage = Vec<u8>;
 
 struct ProcessorStatus {
     /// [0] carry
@@ -118,7 +127,7 @@ pub struct Cpu {
 
 
 impl Cpu {
-    pub fn new(rom: Rom) -> Cpu {
+    pub fn new(cartridge: Cartridge, image: Arc<Mutex<RenderImage>>) -> Cpu {
         Cpu {
             pc: 0,
             sp: 0,
@@ -127,7 +136,7 @@ impl Cpu {
             y: 0,
             ps: ProcessorStatus::new(),
 
-            bus: Bus::new(rom),
+            bus: Bus::new(cartridge, image),
 
             cycles_to_finish: 0,
         }
@@ -146,8 +155,8 @@ impl Cpu {
         let mut now = Instant::now();
         let mut frame_count: u64 = 0;
         // frame every 16ms (60 fps)
-        loop {
 
+        loop {
             // 262 scanlines per frame
             for scanline in 0..262 {
                 // 341 ppu cycles per scanline
@@ -156,6 +165,16 @@ impl Cpu {
                         self.step();
                     }
                     self.bus.step_ppu(scanline);
+                }
+            }
+
+            {
+                // println!("ppu render to image");
+                let mut image = self.bus.ppu.image.lock().unwrap();
+
+                for pixel in image.chunks_exact_mut(4) {
+                    let color: u8 = random();
+                    pixel.copy_from_slice(&[color, color, color, color]);
                 }
             }
 
@@ -169,12 +188,14 @@ impl Cpu {
 
             let time_elapsed = now.elapsed();
             // println!("time elapsed: {:.3}ms", time_elapsed.as_secs_f32() * 1000f32);
+
+            // let image = self.bus.ppu_image();
+
             if time_elapsed < time_per_frame {
                 sleep(time_per_frame - time_elapsed);
             }
             now = Instant::now();
         }
-
     }
 
 

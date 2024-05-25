@@ -160,8 +160,7 @@ impl Gui {
             .open(&mut self.window_open)
             .show(ctx, |ui| {
                 ui.label("This example demonstrates using egui with pixels.");
-                ui.label("Made with 💖 in San Francisco!");
-
+                
                 ui.separator();
 
                 ui.horizontal(|ui| {

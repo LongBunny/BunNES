@@ -1,21 +1,24 @@
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
+use crate::nes::cpu::{HEIGHT, RenderImage, WIDTH};
 use crate::nes::ppu::Ppu;
-use crate::nes::rom::Rom;
+use crate::nes::rom::Cartridge;
 
 const RAM_CAP: usize = 2 * 1024;
 pub(crate) type Ram = [u8; RAM_CAP];
 
 pub struct Bus {
-    ppu: Ppu,
-    rom: Rom,
+    pub ppu: Ppu,
+    rom: Arc<Cartridge>,
     ram: Ram,
 }
 
 impl Bus {
-    pub fn new(rom: Rom) -> Bus {
+    pub fn new(cartridge: Cartridge, image: Arc<Mutex<RenderImage>>) -> Bus {
         let ram = [0u8; RAM_CAP];
-        let rom = rom;
+        let rom = Arc::new(cartridge);
 
-        let ppu = Ppu::new();
+        let ppu = Ppu::new(rom.clone(), image);
 
         Bus {
             ram,

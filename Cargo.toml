@@ -13,3 +13,4 @@ egui-winit = { version = "0.22", default-features = false, features = ["links"] 
 pixels = "0.13.0"
 winit = "0.28"
 winit_input_helper = "0.14"
+rand = { version = "0.9.0-alpha.1", features = [] }

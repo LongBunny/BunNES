@@ -1,8 +1,11 @@
+use std::sync::{Arc, mpsc, Mutex};
+use std::thread;
 use crate::gui::Framework;
-use crate::nes::cpu::Cpu;
-use crate::nes::rom::Rom;
+use crate::nes::cpu::{Cpu, HEIGHT, RenderImage, WIDTH};
+use crate::nes::rom::Cartridge;
 
 use pixels::{Pixels, SurfaceTexture};
+use rand::random;
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode},
@@ -14,27 +17,28 @@ use winit_input_helper::WinitInputHelper;
 
 
 pub struct Emulator {
-    cpu: Cpu
+    cpu: Cpu,
+    image: Arc<Mutex<RenderImage>>,
 }
 
 impl Emulator {
-    pub fn new(rom: Rom) -> Emulator {
+    pub fn new(cartridge: Cartridge) -> Emulator {
+        let image: Arc<Mutex<RenderImage>> = Arc::new(Mutex::new([0; (WIDTH * HEIGHT * 4) as usize].to_vec()));
+
         Emulator {
-            cpu: Cpu::new(rom)
+            cpu: Cpu::new(cartridge, image.clone()),
+            image
         }
     }
 
     pub fn run(mut self) {
 
 
+
         self.cpu.reset();
-        // self.cpu.run();
 
         let event_loop = EventLoop::new();
         let mut input = WinitInputHelper::new();
-
-        const WIDTH: u32 = 256 + 100;
-        const HEIGHT: u32 = 240;
 
         let window = {
             let size = LogicalSize::new(WIDTH, HEIGHT);
@@ -52,7 +56,7 @@ impl Emulator {
             let window_size = window.inner_size();
             let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
             let scale_factor = window.scale_factor() as f32;
-            let pixels = Pixels::new(WIDTH, HEIGHT, surface_texture).expect("Cant pixel yo");
+            let pixels = Pixels::new(WIDTH, HEIGHT, surface_texture).expect("Could not create pixels");
 
             let framework = Framework::new(
                 &event_loop,
@@ -65,8 +69,25 @@ impl Emulator {
             (pixels, framework)
         };
 
+        thread::spawn(move || {
+            self.cpu.run();
+        });
+
+
+
         event_loop.run(move |event, _, control_flow| {
+
+
             if let Event::RedrawRequested(_) = event {
+
+                let frame = pixels.frame_mut();
+
+
+                // println!("emulator render to screen");
+                let image = self.image.lock().unwrap();
+                frame.copy_from_slice(&image);
+
+
                 if let Err(err) = pixels.render() {
                     eprintln!("Error: pixels.render: {}", err);
                     *control_flow = ControlFlow::Exit;
