@@ -1,10 +1,11 @@
 mod emulator;
 mod nes;
+mod gui;
 
 use std::fs::File;
 use std::io::Read;
 use crate::emulator::Emulator;
-use crate::nes::rom::Rom;
+use crate::nes::rom::Cartridge;
 
 
 fn main() {
@@ -14,9 +15,9 @@ fn main() {
     let mut rom_bytes = vec!();
     f.read_to_end(&mut rom_bytes).unwrap();
 
-    let rom = Rom::new(rom_bytes);
-    println!("{}", rom);
+    let cartridge = Cartridge::new(rom_bytes);
+    println!("{}", cartridge);
 
-    let mut emulator = Emulator::new(rom);
+    let mut emulator = Emulator::new(cartridge);
     emulator.run();
 }

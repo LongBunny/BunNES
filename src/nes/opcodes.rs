@@ -29,7 +29,7 @@ pub(crate) enum OpCode {
     Stx(AddrMode),
 }
 
-pub static OP_CODES: [Option<(OpCode)>; 256] = [
+pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0x00
     None, // 0x01
     None, // 0x02

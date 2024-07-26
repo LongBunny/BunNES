@@ -2,8 +2,10 @@ use std::fmt::{Display, Formatter};
 use std::str;
 
 // https://www.nesdev.org/wiki/INES
+
 #[allow(unused_variables)]
-pub struct Rom {
+#[derive(Debug)]
+pub struct Cartridge {
     header: RomHeader,
     trainer: Vec<u8>,
     prg_rom: Vec<u8>,
@@ -14,8 +16,8 @@ pub struct Rom {
     p_rom: Vec<u8>,
 }
 
-impl Rom {
-    pub(crate) fn new(bytes: Vec<u8>) -> Rom {
+impl Cartridge {
+    pub(crate) fn new(bytes: Vec<u8>) -> Cartridge {
         let mut offset: usize = 0;
 
         let header = RomHeader::parse(&bytes[0..16]);
@@ -32,7 +34,7 @@ impl Rom {
 
         let chr_rom = bytes[offset..offset + header.chr_len()].to_vec();
 
-        Rom {
+        Cartridge {
             header,
             trainer,
             prg_rom,
@@ -53,7 +55,7 @@ impl Rom {
     }
 }
 
-impl Display for Rom {
+impl Display for Cartridge {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.header)?;
         write!(f, "Mapper: {}", (self.header.flags6 & 0b1111_0000) >> 4 | self.header.flags7 & 0b1111_0000)?;
@@ -61,6 +63,7 @@ impl Display for Rom {
     }
 }
 
+#[derive(Debug)]
 struct RomHeader {
     magic: [u8; 4],
     prg_rom: u8,

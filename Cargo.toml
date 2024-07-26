@@ -1,5 +1,5 @@
 [package]
-name = "nes_emulator"
+name = "BunNES"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,10 @@ edition = "2021"
 
 [dependencies]
 bit = "0.1.1"
+egui = "0.22"
+egui-wgpu = "0.22"
+egui-winit = { version = "0.22", default-features = false, features = ["links"] }
+pixels = "0.13.0"
+winit = "0.28"
+winit_input_helper = "0.14"
+rand = { version = "0.9.0-alpha.1", features = [] }
