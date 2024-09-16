@@ -1,0 +1,8 @@
+[package]
+name = "gui-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bunNES = { path = "../bunNES" }
+raylib = "5.0.2"

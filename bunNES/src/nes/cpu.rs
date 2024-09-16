@@ -14,7 +14,7 @@ pub const HEIGHT: u32 = 240;
 
 pub type RenderImage = Vec<u8>;
 
-struct ProcessorStatus {
+pub struct ProcessorStatus {
     /// [0] carry
     /// [1] zero
     /// [2] irqb disable
@@ -33,7 +33,7 @@ impl ProcessorStatus {
         }
     }
 
-    fn carry(&self) -> bool {
+    pub fn carry(&self) -> bool {
         self.reg.bit(0)
     }
 
@@ -41,7 +41,7 @@ impl ProcessorStatus {
         self.reg.set_bit(0, value);
     }
 
-    fn zero(&self) -> bool {
+    pub fn zero(&self) -> bool {
         self.reg.bit(1)
     }
 
@@ -49,7 +49,7 @@ impl ProcessorStatus {
         self.reg.set_bit(1, value);
     }
 
-    fn irqb(&self) -> bool {
+    pub fn irqb(&self) -> bool {
         self.reg.bit(2)
     }
 
@@ -57,7 +57,7 @@ impl ProcessorStatus {
         self.reg.set_bit(2, value);
     }
 
-    fn decimal(&self) -> bool {
+    pub fn decimal(&self) -> bool {
         self.reg.bit(3)
     }
 
@@ -65,7 +65,7 @@ impl ProcessorStatus {
         self.reg.set_bit(3, value);
     }
 
-    fn brk(&self) -> bool {
+    pub fn brk(&self) -> bool {
         self.reg.bit(4)
     }
 
@@ -73,7 +73,7 @@ impl ProcessorStatus {
         self.reg.set_bit(4, value);
     }
 
-    fn overflow(&self) -> bool {
+    pub fn overflow(&self) -> bool {
         self.reg.bit(6)
     }
 
@@ -81,7 +81,7 @@ impl ProcessorStatus {
         self.reg.set_bit(6, value);
     }
 
-    fn negative(&self) -> bool {
+    pub fn negative(&self) -> bool {
         self.reg.bit(7)
     }
 
@@ -108,21 +108,21 @@ impl Step {
 #[allow(unused_variables, dead_code)]
 pub struct Cpu {
     /// program counter
-    pc: u16,
+    pub pc: u16,
     /// stack pointer
-    sp: u8,
+    pub sp: u8,
     /// accumulator
-    acc: u8,
+    pub acc: u8,
     /// index register x
-    x: u8,
+    pub x: u8,
     /// index register y
-    y: u8,
+    pub y: u8,
     /// processor status
-    ps: ProcessorStatus,
+    pub ps: ProcessorStatus,
 
-    bus: Bus,
+    pub bus: Bus,
 
-    cycles_to_finish: u8,
+    pub cycles_to_finish: u8,
 }
 
 
@@ -148,6 +148,7 @@ impl Cpu {
         let reset: u16 = self.bus.read_8(0xFFFC) as u16 | (self.bus.read_8(0xFFFD) as u16) << 8;
         println!("reset vector: {:#04X}", reset);
         self.set_pc(reset);
+         
     }
 
     pub fn run(&mut self) {
@@ -173,8 +174,8 @@ impl Cpu {
                 let mut image = self.bus.ppu.image.lock().unwrap();
 
                 for pixel in image.chunks_exact_mut(4) {
-                    let color: u8 = random();
-                    pixel.copy_from_slice(&[color, color, color, color]);
+                    // let color: u8 = random();
+                    pixel.copy_from_slice(&[0, 0, 0, 255]);
                 }
             }
 

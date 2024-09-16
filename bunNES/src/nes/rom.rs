@@ -17,7 +17,7 @@ pub struct Cartridge {
 }
 
 impl Cartridge {
-    pub(crate) fn new(bytes: Vec<u8>) -> Cartridge {
+    pub fn new(bytes: Vec<u8>) -> Cartridge {
         let mut offset: usize = 0;
 
         let header = RomHeader::parse(&bytes[0..16]);
