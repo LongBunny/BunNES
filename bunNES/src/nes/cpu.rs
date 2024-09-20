@@ -155,6 +155,7 @@ impl Cpu {
         let time_per_frame: Duration = Duration::from_secs_f32(1f32 / 60f32);
         let mut now = Instant::now();
         let mut frame_count: u64 = 0;
+        
         // frame every 16ms (60 fps)
 
         loop {

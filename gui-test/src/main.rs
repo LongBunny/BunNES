@@ -83,7 +83,7 @@ impl Window {
         y += FONT_SIZE + PADDING;
 
         self.draw_registers(x, &mut y, d);
-        self.draw_memory(x, &mut y, d);
+        // self.draw_memory(x, &mut y, d);
     }
 
     fn draw_registers(&mut self, x: i32, y: &mut i32, d: &mut RaylibDrawHandle) {
