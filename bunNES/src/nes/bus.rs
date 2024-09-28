@@ -82,7 +82,7 @@ impl Bus {
                             0x4000 => {
                                 // 16k rom
                                 // subtract rom location and mirror upper 0x4000 bytes
-                                let mut addr = (addr as usize -0x8000) % 0x4000;
+                                let addr = (addr as usize -0x8000) % 0x4000;
                                 self.rom.prg()[addr]
                             },
                             0x8000 => {

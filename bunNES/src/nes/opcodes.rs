@@ -172,7 +172,7 @@ pub fn op_code_from_instruction(to_find: Instruction) -> Option<usize> {
 
 pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Brk, addr_mode: Implicit, size: 1 }), // 0x00
-    Some(Instruction { op_code: Ora, addr_mode: ZpX, size: 2 }), // 0x01
+    Some(Instruction { op_code: Ora, addr_mode: IndexedIndirect, size: 2 }), // 0x01
     None, // 0x02
     None, // 0x03
     None, // 0x04
@@ -188,7 +188,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Asl, addr_mode: Absolute, size: 3 }), // 0x0e
     None, // 0x0f
     Some(Instruction { op_code: Bpl, addr_mode: Relative, size: 2 }), // 0x10
-    Some(Instruction { op_code: Ora, addr_mode: ZpY, size: 2 }), // 0x11
+    Some(Instruction { op_code: Ora, addr_mode: IndirectIndexed, size: 2 }), // 0x11
     Some(Instruction { op_code: Ora, addr_mode: Zp, size: 2 }), // 0x12
     None, // 0x13
     None, // 0x14
@@ -204,7 +204,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Asl, addr_mode: Absolute, size: 3 }), // 0x1e
     None, // 0x1f
     Some(Instruction { op_code: Jsr, addr_mode: Absolute, size: 3 }), // 0x20
-    Some(Instruction { op_code: And, addr_mode: ZpX, size: 2 }), // 0x21
+    Some(Instruction { op_code: And, addr_mode: IndexedIndirect, size: 2 }), // 0x21
     None, // 0x22
     None, // 0x23
     Some(Instruction { op_code: Bit, addr_mode: Zp, size: 2 }), // 0x24
@@ -220,7 +220,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Rol, addr_mode: Absolute, size: 3 }), // 0x2e
     None, // 0x2f
     Some(Instruction { op_code: Bmi, addr_mode: Relative, size: 2 }), // 0x30
-    Some(Instruction { op_code: And, addr_mode: ZpY, size: 2 }), // 0x31
+    Some(Instruction { op_code: And, addr_mode: IndirectIndexed, size: 2 }), // 0x31
     Some(Instruction { op_code: And, addr_mode: Zp, size: 2 }), // 0x32
     None, // 0x33
     Some(Instruction { op_code: Bit, addr_mode: ZpX, size: 2 }), // 0x34
@@ -236,7 +236,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Rol, addr_mode: AbsoluteX, size: 3 }), // 0x3e
     None, // 0x3f
     Some(Instruction { op_code: Rti, addr_mode: Implicit, size: 1 }), // 0x40
-    Some(Instruction { op_code: Eor, addr_mode: ZpX, size: 2 }), // 0x41
+    Some(Instruction { op_code: Eor, addr_mode: IndexedIndirect, size: 2 }), // 0x41
     None, // 0x42
     None, // 0x43
     None, // 0x44
@@ -252,7 +252,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Lsr, addr_mode: Absolute, size: 3 }), // 0x4e
     None, // 0x4f
     Some(Instruction { op_code: Bvc, addr_mode: Relative, size: 2 }), // 0x50
-    Some(Instruction { op_code: Eor, addr_mode: ZpY, size: 2 }), // 0x51
+    Some(Instruction { op_code: Eor, addr_mode: IndirectIndexed, size: 2 }), // 0x51
     Some(Instruction { op_code: Eor, addr_mode: Zp, size: 2 }), // 0x52
     None, // 0x53
     None, // 0x54
@@ -268,7 +268,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Lsr, addr_mode: AbsoluteX, size: 3 }), // 0x5e
     None, // 0x5f
     Some(Instruction { op_code: Rts, addr_mode: Implicit, size: 1 }), // 0x60
-    Some(Instruction { op_code: Adc, addr_mode: ZpX, size: 2 }), // 0x61
+    Some(Instruction { op_code: Adc, addr_mode: IndexedIndirect, size: 2 }), // 0x61
     None, // 0x62
     None, // 0x63
     None, // 0x64
@@ -279,12 +279,12 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Adc, addr_mode: Immediate, size: 2 }), // 0x69
     Some(Instruction { op_code: Ror, addr_mode: Accumulator, size: 1 }), // 0x6a
     None, // 0x6b
-    Some(Instruction { op_code: Jmp, addr_mode: Absolute, size: 3 }), // 0x6c
+    Some(Instruction { op_code: Jmp, addr_mode: Indirect, size: 3 }), // 0x6c
     Some(Instruction { op_code: Adc, addr_mode: Absolute, size: 3 }), // 0x6d
     Some(Instruction { op_code: Ror, addr_mode: Absolute, size: 3 }), // 0x6e
     None, // 0x6f
     Some(Instruction { op_code: Bvs, addr_mode: Relative, size: 2 }), // 0x70
-    Some(Instruction { op_code: Adc, addr_mode: ZpY, size: 2 }), // 0x71
+    Some(Instruction { op_code: Adc, addr_mode: IndirectIndexed, size: 2 }), // 0x71
     Some(Instruction { op_code: Adc, addr_mode: Zp, size: 2 }), // 0x72
     None, // 0x73
     None, // 0x74
@@ -300,7 +300,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Ror, addr_mode: AbsoluteX, size: 3 }), // 0x7e
     None, // 0x7f
     None, // 0x80
-    Some(Instruction { op_code: Sta, addr_mode: ZpX, size: 2 }), // 0x81
+    Some(Instruction { op_code: Sta, addr_mode: IndexedIndirect, size: 2 }), // 0x81
     None, // 0x82
     None, // 0x83
     Some(Instruction { op_code: Sty, addr_mode: Zp, size: 2 }), // 0x84
@@ -316,7 +316,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Stx, addr_mode: Absolute, size: 3 }), // 0x8e
     None, // 0x8f
     Some(Instruction { op_code: Bcc, addr_mode: Relative, size: 2 }), // 0x90
-    Some(Instruction { op_code: Sta, addr_mode: ZpY, size: 2 }), // 0x91
+    Some(Instruction { op_code: Sta, addr_mode: IndirectIndexed, size: 2 }), // 0x91
     Some(Instruction { op_code: Sta, addr_mode: Zp, size: 2 }), // 0x92
     None, // 0x93
     Some(Instruction { op_code: Sty, addr_mode: ZpX, size: 2 }), // 0x94
@@ -332,7 +332,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     None, // 0x9e
     None, // 0x9f
     Some(Instruction { op_code: Ldy, addr_mode: Immediate, size: 2 }), // 0xa0
-    Some(Instruction { op_code: Lda, addr_mode: ZpX, size: 2 }), // 0xa1
+    Some(Instruction { op_code: Lda, addr_mode: IndexedIndirect, size: 2 }), // 0xa1
     Some(Instruction { op_code: Ldx, addr_mode: Immediate, size: 2 }), // 0xa2
     None, // 0xa3
     Some(Instruction { op_code: Ldy, addr_mode: Zp, size: 2 }), // 0xa4
@@ -348,7 +348,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Ldx, addr_mode: Absolute, size: 3 }), // 0xae
     None, // 0xaf
     Some(Instruction { op_code: Bcs, addr_mode: Relative, size: 2 }), // 0xb0
-    Some(Instruction { op_code: Lda, addr_mode: ZpY, size: 2 }), // 0xb1
+    Some(Instruction { op_code: Lda, addr_mode: IndirectIndexed, size: 2 }), // 0xb1
     Some(Instruction { op_code: Lda, addr_mode: Zp, size: 2 }), // 0xb2
     None, // 0xb3
     Some(Instruction { op_code: Ldy, addr_mode: ZpX, size: 2 }), // 0xb4
@@ -364,7 +364,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Ldx, addr_mode: AbsoluteY, size: 3 }), // 0xbe
     None, // 0xbf
     Some(Instruction { op_code: Cpy, addr_mode: Immediate, size: 2 }), // 0xc0
-    Some(Instruction { op_code: Cmp, addr_mode: ZpX, size: 2 }), // 0xc1
+    Some(Instruction { op_code: Cmp, addr_mode: IndexedIndirect, size: 2 }), // 0xc1
     None, // 0xc2
     None, // 0xc3
     Some(Instruction { op_code: Cpy, addr_mode: Zp, size: 2 }), // 0xc4
@@ -380,7 +380,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Dec, addr_mode: Absolute, size: 3 }), // 0xce
     None, // 0xcf
     Some(Instruction { op_code: Bne, addr_mode: Relative, size: 2 }), // 0xd0
-    Some(Instruction { op_code: Cmp, addr_mode: ZpY, size: 2 }), // 0xd1
+    Some(Instruction { op_code: Cmp, addr_mode: IndirectIndexed, size: 2 }), // 0xd1
     Some(Instruction { op_code: Cmp, addr_mode: Zp, size: 2 }), // 0xd2
     None, // 0xd3
     None, // 0xd4
@@ -396,7 +396,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Dec, addr_mode: AbsoluteX, size: 3 }), // 0xde
     None, // 0xdf
     Some(Instruction { op_code: Cpx, addr_mode: Immediate, size: 2 }), // 0xe0
-    Some(Instruction { op_code: Sbc, addr_mode: ZpX, size: 2 }), // 0xe1
+    Some(Instruction { op_code: Sbc, addr_mode: IndexedIndirect, size: 2 }), // 0xe1
     None, // 0xe2
     None, // 0xe3
     Some(Instruction { op_code: Cpx, addr_mode: Zp, size: 2 }), // 0xe4
@@ -412,7 +412,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Inc, addr_mode: Absolute, size: 3 }), // 0xee
     None, // 0xef
     Some(Instruction { op_code: Beq, addr_mode: Relative, size: 2 }), // 0xf0
-    Some(Instruction { op_code: Sbc, addr_mode: ZpY, size: 2 }), // 0xf1
+    Some(Instruction { op_code: Sbc, addr_mode: IndirectIndexed, size: 2 }), // 0xf1
     Some(Instruction { op_code: Sbc, addr_mode: Zp, size: 2 }), // 0xf2
     None, // 0xf3
     None, // 0xf4

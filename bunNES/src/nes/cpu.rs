@@ -11,6 +11,7 @@ pub const HEIGHT: u32 = 240;
 
 pub type RenderImage = Vec<u8>;
 
+#[derive(Eq, PartialEq)]
 pub struct ProcessorStatus {
     /// [0] carry
     /// [1] zero
