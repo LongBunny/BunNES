@@ -13,6 +13,7 @@ const NES_SCALE: i32 = 4;
 const DEBUG_WIDTH: i32 = 600;
 const FONT_SIZE: i32 = 20;
 const PADDING: i32 = 5;
+const DEBUG_DISASSEMBLY_WIDTH: i32 = 370;
 
 type Mem = [u8; 2048];
 
@@ -94,8 +95,8 @@ impl Window {
         let x = NES_WIDTH * NES_SCALE + PADDING;
         let mut y = PADDING;
 
-        y = self.draw_registers(x, y, d);
         y = self.draw_disassembly(x, y, d);
+        y = self.draw_registers(x + DEBUG_DISASSEMBLY_WIDTH + 50, PADDING, d);
         // y = self.draw_memory(x, y, d);
     }
 
@@ -119,18 +120,17 @@ impl Window {
         let negative = if cpu.ps.negative() { 1 } else { 0 };
 
         let mut y = y;
-        let width_reg = DEBUG_WIDTH / regs.len() as i32;
-        for (i, reg) in regs.iter().enumerate() {
-            let reg_name = reg.0;
-            let reg_value = reg.1;
-            self.draw_text(d, reg_name, x + (i as i32 * width_reg), y, FONT_SIZE, Color::BLACK);
-            self.draw_text(d, format!("{:X}", reg_value).as_str(), x + (i as i32 * width_reg), y + FONT_SIZE + PADDING, FONT_SIZE, Color::BLACK);
+        for (reg_name, reg_value) in regs {
+            self.draw_text(d, reg_name, x, y, FONT_SIZE, Color::BLACK);
+            if reg_name == "pc" {
+                self.draw_text(d, format!("{:04X}", reg_value).as_str(), x + 50, y, FONT_SIZE, Color::BLACK);
+            } else {
+                self.draw_text(d, format!("{:02X}", reg_value).as_str(), x + 50, y, FONT_SIZE, Color::BLACK);
+            }
+            y += FONT_SIZE + PADDING;
         }
 
-        y += (FONT_SIZE + PADDING) * 2;
-        d.draw_line(x - PADDING, y, x + DEBUG_WIDTH, y, Color::BLACK);
-        y += PADDING;
-
+        y += PADDING * 2;
 
         let status_regs = [
             ("c", carry),
@@ -141,17 +141,11 @@ impl Window {
             ("o", overflow),
             ("n", negative),
         ];
-        let width_status_regs = DEBUG_WIDTH / status_regs.len() as i32;
-        for (i, reg) in status_regs.iter().enumerate() {
-            let reg_name = reg.0;
-            let reg_value = reg.1;
-            self.draw_text(d, reg_name, x + (i as i32 * width_status_regs), y, FONT_SIZE, Color::BLACK);
-            self.draw_text(d, format!("{:X}", reg_value).as_str(), x + (i as i32 * width_status_regs), y + FONT_SIZE + PADDING, FONT_SIZE, Color::BLACK);
+        for (reg_name, reg_value) in status_regs {
+            self.draw_text(d, reg_name, x, y, FONT_SIZE, Color::BLACK);
+            self.draw_text(d, format!("{}", reg_value).as_str(), x + 50, y, FONT_SIZE, Color::BLACK);
+            y += FONT_SIZE + PADDING;
         }
-
-        y += (FONT_SIZE + PADDING) * 2;
-        d.draw_line(x - PADDING, y, x + DEBUG_WIDTH, y, Color::BLACK);
-        y += PADDING;
 
         y
     }
@@ -192,7 +186,9 @@ impl Window {
 
         let mut location = cpu.pc;
 
-        for _ in 0..20 {
+        let amount_of_instructions = (((NES_HEIGHT * NES_SCALE) as f32 / (FONT_SIZE + PADDING) as f32) as i32) - 1;
+
+        for _ in 0..amount_of_instructions {
             let (y_next, size) = self.draw_instruction(location, x, y, d);
             y = y_next;
             location += size as u16;
@@ -205,7 +201,7 @@ impl Window {
         let cpu = &mut self.emulator.cpu;
 
         if location == cpu.pc {
-            d.draw_rectangle(x - PADDING, y - PADDING / 2, 370, FONT_SIZE + PADDING, Color::YELLOW);
+            d.draw_rectangle(x - PADDING, y, DEBUG_DISASSEMBLY_WIDTH, FONT_SIZE, Color::YELLOW);
         }
 
         let size: u8 = if let (Some(instruction), byte_code) = cpu.get_instruction(location) {
