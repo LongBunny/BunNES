@@ -24,7 +24,6 @@ pub struct Ppu {
 
     cartridge: Arc<Cartridge>,
 
-    pub(crate) image: Arc<Mutex<RenderImage>>,
 
     cpu_cycle_count: u64,
     ppu_cycle_count: u64,
@@ -53,7 +52,7 @@ struct Palette {
 
 
 impl Ppu {
-    pub fn new(cartridge: Arc<Cartridge>, image: Arc<Mutex<RenderImage>>) -> Ppu {
+    pub fn new(cartridge: Arc<Cartridge>) -> Ppu {
 
         Ppu {
             ppu_ctrl: 0,
@@ -68,7 +67,6 @@ impl Ppu {
 
             cartridge,
 
-            image,
 
             cpu_cycle_count: 0,
             ppu_cycle_count: 0,

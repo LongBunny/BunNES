@@ -9,15 +9,15 @@ pub(crate) type Ram = [u8; RAM_CAP];
 pub struct Bus {
     pub ppu: Ppu,
     rom: Arc<Cartridge>,
-    ram: Ram,
+    pub ram: Ram,
 }
 
 impl Bus {
-    pub fn new(cartridge: Cartridge, image: Arc<Mutex<RenderImage>>) -> Bus {
+    pub fn new(cartridge: Cartridge) -> Bus {
         let ram = [0u8; RAM_CAP];
         let rom = Arc::new(cartridge);
 
-        let ppu = Ppu::new(rom.clone(), image);
+        let ppu = Ppu::new(rom.clone());
 
         Bus {
             ram,

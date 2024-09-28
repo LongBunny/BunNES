@@ -6,16 +6,12 @@ use crate::nes::rom::Cartridge;
 
 pub struct Emulator {
     pub cpu: Cpu,
-    image: Arc<Mutex<RenderImage>>,
 }
 
 impl Emulator {
     pub fn new(cartridge: Cartridge) -> Emulator {
-        let image: Arc<Mutex<RenderImage>> = Arc::new(Mutex::new([0; (WIDTH * HEIGHT * 4) as usize].to_vec()));
-
         Emulator {
-            cpu: Cpu::new(cartridge, image.clone()),
-            image
+            cpu: Cpu::new(cartridge),
         }
     }
     

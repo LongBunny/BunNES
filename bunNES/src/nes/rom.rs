@@ -45,6 +45,17 @@ impl Cartridge {
             p_rom: vec!()
         }
     }
+    
+    pub fn test_cartride(bytes: Vec<u8>) -> Cartridge {
+        Cartridge {
+            header: RomHeader::test_header(),
+            trainer: vec![],
+            prg_rom: bytes,
+            chr_rom: vec![],
+            inst_rom: vec![],
+            p_rom: vec![],
+        }
+    }
 
     pub fn prg(&self) -> &Vec<u8> {
         &self.prg_rom
@@ -76,7 +87,7 @@ struct RomHeader {
 }
 
 impl RomHeader {
-    fn parse(values: &[u8]) -> RomHeader {
+    fn parse(values: &[u8]) -> Self {
         RomHeader {
             magic: values[0..4].try_into().unwrap(),
             prg_rom: values[4],
@@ -86,6 +97,19 @@ impl RomHeader {
             flags8: values[8],
             flags9: values[9],
             flags10: values[10],
+        }
+    }
+    
+    fn test_header() -> Self {
+        RomHeader {
+            magic: [0; 4],
+            prg_rom: 0,
+            chr_rom: 0,
+            flags6: 0,
+            flags7: 0,
+            flags8: 0,
+            flags9: 0,
+            flags10: 0,
         }
     }
 

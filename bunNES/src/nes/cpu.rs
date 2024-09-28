@@ -24,7 +24,7 @@ pub struct ProcessorStatus {
 }
 
 impl ProcessorStatus {
-    fn new() -> ProcessorStatus {
+    pub fn new() -> ProcessorStatus {
         ProcessorStatus {
             reg: 0
         }
@@ -123,7 +123,7 @@ pub struct Cpu {
 
 
 impl Cpu {
-    pub fn new(cartridge: Cartridge, image: Arc<Mutex<RenderImage>>) -> Cpu {
+    pub fn new(cartridge: Cartridge) -> Cpu {
         Cpu {
             pc: 0,
             sp: 0,
@@ -132,12 +132,12 @@ impl Cpu {
             y: 0,
             ps: ProcessorStatus::new(),
 
-            bus: Bus::new(cartridge, image),
+            bus: Bus::new(cartridge),
 
             cycles_to_finish: 0,
         }
     }
-
+    
     pub fn soft_reset(&mut self) {
         println!("reset!");
         println!("rom size: {}", self.bus.rom_len());
@@ -167,12 +167,7 @@ impl Cpu {
 
             {
                 // println!("ppu render to image");
-                let mut image = self.bus.ppu.image.lock().unwrap();
 
-                for pixel in image.chunks_exact_mut(4) {
-                    // let color: u8 = random();
-                    pixel.copy_from_slice(&[0, 0, 0, 255]);
-                }
             }
 
 

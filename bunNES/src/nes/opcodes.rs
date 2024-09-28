@@ -3,7 +3,7 @@ use std::path::absolute;
 use crate::nes::opcodes::AddrMode::*;
 use crate::nes::opcodes::OpCode::*;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum AddrMode {
     Implicit,
     Accumulator,
@@ -24,10 +24,12 @@ pub enum AddrMode {
 pub struct Instruction {
     pub op_code: OpCode,
     pub addr_mode: AddrMode,
+    // TODO: remove
     pub size: u8,
 }
 
-#[derive(Debug, Copy, Clone)]
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum OpCode {
     Adc,
     And,
@@ -156,6 +158,16 @@ impl Display for OpCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.to_string())
     }
+}
+
+pub fn op_code_from_instruction(to_find: Instruction) -> Option<usize> {
+    OP_CODES.iter().position(|instruction| {
+        if let Some(instruction) = instruction {
+            instruction.op_code == to_find.op_code && instruction.addr_mode == to_find.addr_mode
+        } else {
+            false
+        }
+    })
 }
 
 pub static OP_CODES: [(Option<Instruction>); 256] = [
