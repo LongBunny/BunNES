@@ -4,12 +4,26 @@ use crate::nes::opcodes::OpCode::*;
 
 #[derive(Debug, Copy, Clone)]
 pub enum AddrMode {
-    Abs,
     Implicit,
+    Accumulator,
     Immediate,
+    Zp,
+    ZpX,
+    ZpY,
+    Relative,
     Absolute,
     AbsoluteX,
-    Relative,
+    AbsoluteY,
+    Indirect,
+    IndirectIndexed,
+    IndexedIndirect,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Instruction {
+    pub op_code: OpCode,
+    pub addr_mode: AddrMode,
+    pub size: u8,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -17,36 +31,36 @@ pub enum OpCode {
     Sei,
     Cld,
     Txs,
-    Cpx(AddrMode),
+    Cpx,
     Bne,
-    Bpl(AddrMode),
+    Bpl,
     Inx,
     Dex,
     Dey,
-    Ldx(AddrMode),
-    Ldy(AddrMode),
-    Lda(AddrMode),
-    Sta(AddrMode),
-    Stx(AddrMode),
+    Ldx,
+    Ldy,
+    Lda,
+    Sta,
+    Stx,
 }
 
 impl OpCode {
     fn to_string(&self) -> &str {
-        match self {
+        match self {            
             Sei => "SEI",
             Cld => "CLD",
             Txs => "TXS",
-            Cpx(_) => "CPX",
+            Cpx => "CPX",
             Bne => "BNE",
-            Bpl(_) => "BPL",
+            Bpl => "BPL",
             Inx => "INX",
             Dex => "DEX",
             Dey => "DEY",
-            Ldx(_) => "LDX",
-            Ldy(_) => "LDY",
-            Lda(_) => "LDA",
-            Sta(_) => "STA",
-            Stx(_) => "STX",
+            Ldx => "LDX",
+            Ldy => "LDY",
+            Lda => "LDA",
+            Sta => "STA",
+            Stx => "STX",
         }
     }
 }
@@ -57,261 +71,261 @@ impl Display for OpCode {
     }
 }
 
-pub static OP_CODES: [(Option<OpCode>, u8); 256] = [
-    (None, 1), // 0x00
-    (None, 1), // 0x01
-    (None, 1), // 0x02
-    (None, 1), // 0x03
-    (None, 1), // 0x04
-    (None, 1), // 0x05
-    (None, 1), // 0x06
-    (None, 1), // 0x07
-    (None, 1), // 0x08
-    (None, 1), // 0x09
-    (None, 1), // 0x0a
-    (None, 1), // 0x0b
-    (None, 1), // 0x0c
-    (None, 1), // 0x0d
-    (None, 1), // 0x0e
-    (None, 1), // 0x0f
-    (Some(Bpl(Relative)), 2), // 0x10
-    (None, 1), // 0x11
-    (None, 1), // 0x12
-    (None, 1), // 0x13
-    (None, 1), // 0x14
-    (None, 1), // 0x15
-    (None, 1), // 0x16
-    (None, 1), // 0x17
-    (None, 1), // 0x18
-    (None, 1), // 0x19
-    (None, 1), // 0x1a
-    (None, 1), // 0x1b
-    (None, 1), // 0x1c
-    (None, 1), // 0x1d
-    (None, 1), // 0x1e
-    (None, 1), // 0x1f
-    (None, 1), // 0x20
-    (None, 1), // 0x21
-    (None, 1), // 0x22
-    (None, 1), // 0x23
-    (None, 1), // 0x24
-    (None, 1), // 0x25
-    (None, 1), // 0x26
-    (None, 1), // 0x27
-    (None, 1), // 0x28
-    (None, 1), // 0x29
-    (None, 1), // 0x2a
-    (None, 1), // 0x2b
-    (None, 1), // 0x2c
-    (None, 1), // 0x2d
-    (None, 1), // 0x2e
-    (None, 1), // 0x2f
-    (None, 1), // 0x30
-    (None, 1), // 0x31
-    (None, 1), // 0x32
-    (None, 1), // 0x33
-    (None, 1), // 0x34
-    (None, 1), // 0x35
-    (None, 1), // 0x36
-    (None, 1), // 0x37
-    (None, 1), // 0x38
-    (None, 1), // 0x39
-    (None, 1), // 0x3a
-    (None, 1), // 0x3b
-    (None, 1), // 0x3c
-    (None, 1), // 0x3d
-    (None, 1), // 0x3e
-    (None, 1), // 0x3f
-    (None, 1), // 0x40
-    (None, 1), // 0x41
-    (None, 1), // 0x42
-    (None, 1), // 0x43
-    (None, 1), // 0x44
-    (None, 1), // 0x45
-    (None, 1), // 0x46
-    (None, 1), // 0x47
-    (None, 1), // 0x48
-    (None, 1), // 0x49
-    (None, 1), // 0x4a
-    (None, 1), // 0x4b
-    (None, 1), // 0x4c
-    (None, 1), // 0x4d
-    (None, 1), // 0x4e
-    (None, 1), // 0x4f
-    (None, 1), // 0x50
-    (None, 1), // 0x51
-    (None, 1), // 0x52
-    (None, 1), // 0x53
-    (None, 1), // 0x54
-    (None, 1), // 0x55
-    (None, 1), // 0x56
-    (None, 1), // 0x57
-    (None, 1), // 0x58
-    (None, 1), // 0x59
-    (None, 1), // 0x5a
-    (None, 1), // 0x5b
-    (None, 1), // 0x5c
-    (None, 1), // 0x5d
-    (None, 1), // 0x5e
-    (None, 1), // 0x5f
-    (None, 1), // 0x60
-    (None, 1), // 0x61
-    (None, 1), // 0x62
-    (None, 1), // 0x63
-    (None, 1), // 0x64
-    (None, 1), // 0x65
-    (None, 1), // 0x66
-    (None, 1), // 0x67
-    (None, 1), // 0x68
-    (None, 1), // 0x69
-    (None, 1), // 0x6a
-    (None, 1), // 0x6b
-    (None, 1), // 0x6c
-    (None, 1), // 0x6d
-    (None, 1), // 0x6e
-    (None, 1), // 0x6f
-    (None, 1), // 0x70
-    (None, 1), // 0x71
-    (None, 1), // 0x72
-    (None, 1), // 0x73
-    (None, 1), // 0x74
-    (None, 1), // 0x75
-    (None, 1), // 0x76
-    (None, 1), // 0x77
-    (Some(Sei), 1), // 0x78
-    (None, 1), // 0x79
-    (None, 1), // 0x7a
-    (None, 1), // 0x7b
-    (None, 1), // 0x7c
-    (None, 1), // 0x7d
-    (None, 1), // 0x7e
-    (None, 1), // 0x7f
-    (None, 1), // 0x80
-    (None, 1), // 0x81
-    (None, 1), // 0x82
-    (None, 1), // 0x83
-    (None, 1), // 0x84
-    (None, 1), // 0x85
-    (None, 1), // 0x86
-    (None, 1), // 0x87
-    (Some(Dey), 1), // 0x88
-    (None, 1), // 0x89
-    (None, 1), // 0x8a
-    (None, 1), // 0x8b
-    (None, 1), // 0x8c
-    (Some(Sta(Absolute)), 3), // 0x8d
-    (Some(Stx(Absolute)), 3), // 0x8e
-    (None, 1), // 0x8f
-    (None, 1), // 0x90
-    (None, 1), // 0x91
-    (None, 1), // 0x92
-    (None, 1), // 0x93
-    (None, 1), // 0x94
-    (None, 1), // 0x95
-    (None, 1), // 0x96
-    (None, 1), // 0x97
-    (None, 1), // 0x98
-    (None, 1), // 0x99
-    (Some(Txs), 1), // 0x9a
-    (None, 1), // 0x9b
-    (None, 1), // 0x9c
-    (None, 1), // 0x9d
-    (None, 1), // 0x9e
-    (None, 1), // 0x9f
-    (Some(Ldy(Immediate)), 2), // 0xa0
-    (None, 1), // 0xa1
-    (Some(Ldx(Immediate)), 2), // 0xa2
-    (None, 1), // 0xa3
-    (None, 1), // 0xa4
-    (None, 1), // 0xa5
-    (None, 1), // 0xa6
-    (None, 1), // 0xa7
-    (None, 1), // 0xa8
-    (Some(Lda(Immediate)), 2), // 0xa9
-    (None, 1), // 0xaa
-    (None, 1), // 0xab
-    (None, 1), // 0xac
-    (Some(Lda(Absolute)), 3), // 0xad
-    (None, 1), // 0xae
-    (None, 1), // 0xaf
-    (None, 1), // 0xb0
-    (None, 1), // 0xb1
-    (None, 1), // 0xb2
-    (None, 1), // 0xb3
-    (None, 1), // 0xb4
-    (None, 1), // 0xb5
-    (None, 1), // 0xb6
-    (None, 1), // 0xb7
-    (None, 1), // 0xb8
-    (None, 1), // 0xb9
-    (None, 1), // 0xba
-    (None, 1), // 0xbb
-    (None, 1), // 0xbc
-    (Some(Lda(AbsoluteX)), 3), // 0xbd
-    (None, 1), // 0xbe
-    (None, 1), // 0xbf
-    (None, 1), // 0xc0
-    (None, 1), // 0xc1
-    (None, 1), // 0xc2
-    (None, 1), // 0xc3
-    (None, 1), // 0xc4
-    (None, 1), // 0xc5
-    (None, 1), // 0xc6
-    (None, 1), // 0xc7
-    (None, 1), // 0xc8
-    (None, 1), // 0xc9
-    (Some(Dex), 1), // 0xca
-    (None, 1), // 0xcb
-    (None, 1), // 0xcc
-    (None, 1), // 0xcd
-    (None, 1), // 0xce
-    (None, 1), // 0xcf
-    (Some(Bne), 1), // 0xd0
-    (None, 1), // 0xd1
-    (None, 1), // 0xd2
-    (None, 1), // 0xd3
-    (None, 1), // 0xd4
-    (None, 1), // 0xd5
-    (None, 1), // 0xd6
-    (None, 1), // 0xd7
-    (Some(Cld), 1), // 0xd8
-    (None, 1), // 0xd9
-    (None, 1), // 0xda
-    (None, 1), // 0xdb
-    (None, 1), // 0xdc
-    (None, 1), // 0xdd
-    (None, 1), // 0xde
-    (None, 1), // 0xdf
-    (Some(Cpx(Immediate)), 2), // 0xe0
-    (None, 1), // 0xe1
-    (None, 1), // 0xe2
-    (None, 1), // 0xe3
-    (None, 1), // 0xe4
-    (None, 1), // 0xe5
-    (None, 1), // 0xe6
-    (None, 1), // 0xe7
-    (Some(Inx), 1), // 0xe8
-    (None, 1), // 0xe9
-    (None, 1), // 0xea
-    (None, 1), // 0xeb
-    (None, 1), // 0xec
-    (None, 1), // 0xed
-    (None, 1), // 0xee
-    (None, 1), // 0xef
-    (None, 1), // 0xf0
-    (None, 1), // 0xf1
-    (None, 1), // 0xf2
-    (None, 1), // 0xf3
-    (None, 1), // 0xf4
-    (None, 1), // 0xf5
-    (None, 1), // 0xf6
-    (None, 1), // 0xf7
-    (None, 1), // 0xf8
-    (None, 1), // 0xf9
-    (None, 1), // 0xfa
-    (None, 1), // 0xfb
-    (None, 1), // 0xfc
-    (None, 1), // 0xfd
-    (None, 1), // 0xfe
-    (None, 1), // 0xff
+pub static OP_CODES: [(Option<Instruction>); 256] = [
+    None, // 0x00
+    None, // 0x01
+    None, // 0x02
+    None, // 0x03
+    None, // 0x04
+    None, // 0x05
+    None, // 0x06
+    None, // 0x07
+    None, // 0x08
+    None, // 0x09
+    None, // 0x0a
+    None, // 0x0b
+    None, // 0x0c
+    None, // 0x0d
+    None, // 0x0e
+    None, // 0x0f
+    Some(Instruction { op_code: Bpl, addr_mode: Relative, size: 2}), // 0x10
+    None, // 0x11
+    None, // 0x12
+    None, // 0x13
+    None, // 0x14
+    None, // 0x15
+    None, // 0x16
+    None, // 0x17
+    None, // 0x18
+    None, // 0x19
+    None, // 0x1a
+    None, // 0x1b
+    None, // 0x1c
+    None, // 0x1d
+    None, // 0x1e
+    None, // 0x1f
+    None, // 0x20
+    None, // 0x21
+    None, // 0x22
+    None, // 0x23
+    None, // 0x24
+    None, // 0x25
+    None, // 0x26
+    None, // 0x27
+    None, // 0x28
+    None, // 0x29
+    None, // 0x2a
+    None, // 0x2b
+    None, // 0x2c
+    None, // 0x2d
+    None, // 0x2e
+    None, // 0x2f
+    None, // 0x30
+    None, // 0x31
+    None, // 0x32
+    None, // 0x33
+    None, // 0x34
+    None, // 0x35
+    None, // 0x36
+    None, // 0x37
+    None, // 0x38
+    None, // 0x39
+    None, // 0x3a
+    None, // 0x3b
+    None, // 0x3c
+    None, // 0x3d
+    None, // 0x3e
+    None, // 0x3f
+    None, // 0x40
+    None, // 0x41
+    None, // 0x42
+    None, // 0x43
+    None, // 0x44
+    None, // 0x45
+    None, // 0x46
+    None, // 0x47
+    None, // 0x48
+    None, // 0x49
+    None, // 0x4a
+    None, // 0x4b
+    None, // 0x4c
+    None, // 0x4d
+    None, // 0x4e
+    None, // 0x4f
+    None, // 0x50
+    None, // 0x51
+    None, // 0x52
+    None, // 0x53
+    None, // 0x54
+    None, // 0x55
+    None, // 0x56
+    None, // 0x57
+    None, // 0x58
+    None, // 0x59
+    None, // 0x5a
+    None, // 0x5b
+    None, // 0x5c
+    None, // 0x5d
+    None, // 0x5e
+    None, // 0x5f
+    None, // 0x60
+    None, // 0x61
+    None, // 0x62
+    None, // 0x63
+    None, // 0x64
+    None, // 0x65
+    None, // 0x66
+    None, // 0x67
+    None, // 0x68
+    None, // 0x69
+    None, // 0x6a
+    None, // 0x6b
+    None, // 0x6c
+    None, // 0x6d
+    None, // 0x6e
+    None, // 0x6f
+    None, // 0x70
+    None, // 0x71
+    None, // 0x72
+    None, // 0x73
+    None, // 0x74
+    None, // 0x75
+    None, // 0x76
+    None, // 0x77
+    Some(Instruction { op_code: Sei, addr_mode: Implicit, size: 1}), // 0x78
+    None, // 0x79
+    None, // 0x7a
+    None, // 0x7b
+    None, // 0x7c
+    None, // 0x7d
+    None, // 0x7e
+    None, // 0x7f
+    None, // 0x80
+    None, // 0x81
+    None, // 0x82
+    None, // 0x83
+    None, // 0x84
+    None, // 0x85
+    None, // 0x86
+    None, // 0x87
+    Some(Instruction { op_code: Dey, addr_mode: Implicit, size: 1}), // 0x88
+    None, // 0x89
+    None, // 0x8a
+    None, // 0x8b
+    None, // 0x8c
+    Some(Instruction { op_code: Sta, addr_mode: Absolute, size: 3}), // 0x8d
+    Some(Instruction { op_code: Stx, addr_mode: Absolute, size: 3}), // 0x8e
+    None, // 0x8f
+    None, // 0x90
+    None, // 0x91
+    None, // 0x92
+    None, // 0x93
+    None, // 0x94
+    None, // 0x95
+    None, // 0x96
+    None, // 0x97
+    None, // 0x98
+    None, // 0x99
+    Some(Instruction { op_code: Txs, addr_mode: Implicit, size: 1}), // 0x9a
+    None, // 0x9b
+    None, // 0x9c
+    None, // 0x9d
+    None, // 0x9e
+    None, // 0x9f
+    Some(Instruction { op_code: Ldy, addr_mode: Immediate, size: 2}), // 0xa0
+    None, // 0xa1
+    Some(Instruction { op_code: Ldx, addr_mode: Immediate, size: 2}), // 0xa2
+    None, // 0xa3
+    None, // 0xa4
+    None, // 0xa5
+    None, // 0xa6
+    None, // 0xa7
+    None, // 0xa8
+    Some(Instruction { op_code: Lda, addr_mode: Immediate, size: 2}), // 0xa9
+    None, // 0xaa
+    None, // 0xab
+    None, // 0xac
+    Some(Instruction { op_code: Lda, addr_mode: Absolute, size: 3}), // 0xad
+    None, // 0xae
+    None, // 0xaf
+    None, // 0xb0
+    None, // 0xb1
+    None, // 0xb2
+    None, // 0xb3
+    None, // 0xb4
+    None, // 0xb5
+    None, // 0xb6
+    None, // 0xb7
+    None, // 0xb8
+    None, // 0xb9
+    None, // 0xba
+    None, // 0xbb
+    None, // 0xbc
+    Some(Instruction { op_code: Lda, addr_mode: AbsoluteX, size: 3}), // 0xbd
+    None, // 0xbe
+    None, // 0xbf
+    None, // 0xc0
+    None, // 0xc1
+    None, // 0xc2
+    None, // 0xc3
+    None, // 0xc4
+    None, // 0xc5
+    None, // 0xc6
+    None, // 0xc7
+    None, // 0xc8
+    None, // 0xc9
+    Some(Instruction { op_code: Dex, addr_mode: Implicit, size: 1}), // 0xca
+    None, // 0xcb
+    None, // 0xcc
+    None, // 0xcd
+    None, // 0xce
+    None, // 0xcf
+    Some(Instruction { op_code: Bne, addr_mode: Implicit, size: 1}), // 0xd0
+    None, // 0xd1
+    None, // 0xd2
+    None, // 0xd3
+    None, // 0xd4
+    None, // 0xd5
+    None, // 0xd6
+    None, // 0xd7
+    Some(Instruction { op_code: Cld, addr_mode: Implicit, size: 1}), // 0xd8
+    None, // 0xd9
+    None, // 0xda
+    None, // 0xdb
+    None, // 0xdc
+    None, // 0xdd
+    None, // 0xde
+    None, // 0xdf
+    Some(Instruction { op_code: Cpx, addr_mode: Immediate, size: 2}), // 0xe0
+    None, // 0xe1
+    None, // 0xe2
+    None, // 0xe3
+    None, // 0xe4
+    None, // 0xe5
+    None, // 0xe6
+    None, // 0xe7
+    Some(Instruction { op_code: Inx, addr_mode: Implicit, size: 1}), // 0xe8
+    None, // 0xe9
+    None, // 0xea
+    None, // 0xeb
+    None, // 0xec
+    None, // 0xed
+    None, // 0xee
+    None, // 0xef
+    None, // 0xf0
+    None, // 0xf1
+    None, // 0xf2
+    None, // 0xf3
+    None, // 0xf4
+    None, // 0xf5
+    None, // 0xf6
+    None, // 0xf7
+    None, // 0xf8
+    None, // 0xf9
+    None, // 0xfa
+    None, // 0xfb
+    None, // 0xfc
+    None, // 0xfd
+    None, // 0xfe
+    None, // 0xff
 ];

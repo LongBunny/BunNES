@@ -4,7 +4,7 @@ use raylib::prelude::*;
 use std::fs::File;
 use std::io::Read;
 use std::ops::Add;
-use bunNES::nes::opcodes::OpCode;
+use bunNES::nes::opcodes::{AddrMode, OpCode};
 
 const NES_WIDTH: i32 = 256;
 const NES_HEIGHT: i32 = 240;
@@ -37,6 +37,8 @@ impl Window {
     fn run(&mut self, rl: &mut RaylibHandle, thread: RaylibThread) {
         self.emulator.reset();
 
+        let mut debug_draw_pos = Vector2::new(0.0, 0.0);
+
         while !rl.window_should_close() {
             let mut d = rl.begin_drawing(&thread);
 
@@ -55,6 +57,19 @@ impl Window {
             if d.is_key_pressed(KeyboardKey::KEY_SPACE) {
                 self.running = !self.running;
             }
+
+            if d.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
+                let mouse_pos = d.get_mouse_position();
+                debug_draw_pos = mouse_pos;
+                println!("Start:  ({}, {})", mouse_pos.x, mouse_pos.y);
+            }
+            if d.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
+                let mouse_pos = d.get_mouse_position();
+                println!("End:    ({}, {})", mouse_pos.x, mouse_pos.y);
+                let diff = mouse_pos - debug_draw_pos;
+                println!("Length: ({}, {})", diff.x.abs(), diff.y.abs());
+            }
+
         }
     }
 
@@ -133,7 +148,7 @@ impl Window {
             self.draw_text(d, reg_name, x + (i as i32 * width_status_regs), y, FONT_SIZE, Color::BLACK);
             self.draw_text(d, format!("{:X}", reg_value).as_str(), x + (i as i32 * width_status_regs), y + FONT_SIZE + PADDING, FONT_SIZE, Color::BLACK);
         }
-        
+
         y += (FONT_SIZE + PADDING) * 2;
         d.draw_line(x - PADDING, y, x + DEBUG_WIDTH, y, Color::BLACK);
         y += PADDING;
@@ -148,21 +163,21 @@ impl Window {
         const PEEK_MEMORY_SIZE: usize = 0xFF;
         const BYTES_PER_LINE: i32 = 16;
         const LINES: i32 = PEEK_MEMORY_SIZE as i32 / BYTES_PER_LINE;
-        
+
         let memory = cpu.bus.memory_chunk(cpu.pc, PEEK_MEMORY_SIZE);
-        
-        
+
+
         for i in 0..LINES {
             let mut str = String::new();
-            
+
             for j in 0..BYTES_PER_LINE {
                 str.push_str(&format!("{:02X} ", memory[(j + i * BYTES_PER_LINE) as usize]));
             }
-            
+
             self.draw_text(d, &str, x, y, FONT_SIZE, Color::BLACK);
             y += FONT_SIZE + PADDING;
         }
-        
+
         y
     }
 
@@ -174,37 +189,80 @@ impl Window {
         let mut y = y;
 
         let cpu = &mut self.emulator.cpu;
-        
+
         let mut location = cpu.pc;
 
-        for _ in 0..10 {
+        for _ in 0..20 {
             let (y_next, size) = self.draw_instruction(location, x, y, d);
             y = y_next;
             location += size as u16;
         }
         y
     }
-    
+
     fn draw_instruction(&mut self, location: u16, x: i32, y: i32, d: &mut RaylibDrawHandle) -> (i32, u8) {
         let mut y = y;
         let cpu = &mut self.emulator.cpu;
-        
-        let instruction = cpu.get_instruction(location);
-        let op_code = instruction.op_code;
-        let size = instruction.size;
 
-        let mut args = String::new();
-        for _ in 0..size - 1 {
-            let arg = cpu.bus.read_8(location + 1);
-            args.push_str(format!("{:02X} ", arg).as_str());
+        if location == cpu.pc {
+            d.draw_rectangle(x - PADDING, y - PADDING / 2, 370, FONT_SIZE + PADDING, Color::YELLOW);
         }
 
-        self.draw_text(d, &format!("{:04X}: {:02X} {}", location, instruction.byte_code, args), x, y, FONT_SIZE, Color::BLACK);
-        if let Some(op_code) = op_code {
-            self.draw_text(d, &format!("{}", op_code), x + 150, y, FONT_SIZE, Color::BLACK);
+        let size: u8 = if let (Some(instruction), byte_code) = cpu.get_instruction(location) {
+            let op_code = instruction.op_code;
+            let size = instruction.size;
+
+            // machine code
+            let mut operand = String::new();
+            assert!(size > 0);
+            for i in 1..size {
+                let arg = cpu.bus.read_8(location + i as u16);
+                operand.push_str(format!("{:02X} ", arg).as_str());
+            }
+
+            // disassembly
+            let operand_normal = match size {
+                1 => 0,
+                2 => cpu.bus.read_8(location + 1) as u16,
+                3 => cpu.bus.read_16(location + 1),
+                _ => panic!("operand size too big: {size}")
+            };
+
+            let operand_normal = match instruction.addr_mode {
+                AddrMode::Implicit => String::new(),
+                AddrMode::Accumulator => String::from("A"),
+                AddrMode::Immediate => format!("#{:02X}", operand_normal),
+                AddrMode::Zp => format!("${:02X}", operand_normal),
+                AddrMode::ZpX => format!("${:02X}, X", operand_normal),
+                AddrMode::ZpY => format!("${:02X}, Y", operand_normal),
+                AddrMode::Relative => {
+                    let op = operand_normal as i8;
+                    let jump_loc = if op >= 0 {
+                        (location + 2).wrapping_add(op as u16)
+                    } else {
+                        (location + 2).wrapping_sub(op.wrapping_abs() as u16)
+                    };
+                    format!(
+                        "*{}{:02} (${:04X})",
+                        if op > 0 { "+" } else { "-" }, (op).abs(),
+                        jump_loc
+                    )
+                },
+                AddrMode::Absolute => format!("${:04X}", operand_normal),
+                AddrMode::AbsoluteX => format!("${:04X}, X", operand_normal),
+                AddrMode::AbsoluteY => format!("${:04X}, Y", operand_normal),
+                AddrMode::Indirect => format!("({:04X})", operand_normal),
+                AddrMode::IndirectIndexed => format!("({:02X}, X)", operand_normal),
+                AddrMode::IndexedIndirect => format!("({:02X}), Y", operand_normal),
+            };
+
+            self.draw_text(d, &format!("{:04X}: {:02X} {}", location, byte_code, operand), x, y, FONT_SIZE, Color::BLACK);
+            self.draw_text(d, &format!("{} {}", op_code, operand_normal), x + 200, y, FONT_SIZE, Color::BLACK);
+            size
         } else {
             self.draw_text(d, "unknown", x, y, FONT_SIZE, Color::BLACK);
-        }
+            1
+        };
 
         y += FONT_SIZE + PADDING;
         (y, size)

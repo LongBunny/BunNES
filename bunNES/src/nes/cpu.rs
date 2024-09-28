@@ -1,13 +1,10 @@
-use std::sync::mpsc::Sender;
+use crate::nes::bus::Bus;
+use crate::nes::opcodes::{AddrMode, Instruction, OpCode, OP_CODES};
+use crate::nes::rom::Cartridge;
+use bit::BitIndex;
 use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
-use bit::BitIndex;
-use rand::random;
-use crate::nes::bus::Bus;
-use crate::nes::opcodes::{AddrMode, OP_CODES, OpCode};
-use crate::nes::rom::Cartridge;
-
 
 pub const WIDTH: u32 = 256 + 100;
 pub const HEIGHT: u32 = 240;
@@ -125,12 +122,6 @@ pub struct Cpu {
 }
 
 
-pub struct Instruction {
-    pub byte_code: u8,
-    pub op_code: Option<OpCode>,
-    pub size: u8,
-}
-
 impl Cpu {
     pub fn new(cartridge: Cartridge, image: Arc<Mutex<RenderImage>>) -> Cpu {
         Cpu {
@@ -228,69 +219,68 @@ impl Cpu {
             return false;
         }
 
-        let instruction = self.get_instruction(self.pc);
+        let (instruction, byte_code) = self.get_instruction(self.pc);
 
-        // println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
-        let step = match instruction.op_code {
-            Some(OpCode::Sei) => {
-                self.sei()
+        let step: Step = if let Some(instruction) = instruction {
+            let addr_mode = instruction.addr_mode;
+            match instruction.op_code {
+                OpCode::Sei => {
+                    self.sei()
+                }
+                OpCode::Cld => {
+                    self.cld()
+                }
+                OpCode::Cpx => {
+                    self.cpx(addr_mode)
+                }
+                OpCode::Bne => {
+                    self.bne()
+                }
+                OpCode::Bpl => {
+                    self.bpl()
+                }
+                OpCode::Txs => {
+                    self.txs()
+                }
+                OpCode::Inx => {
+                    self.inx()
+                }
+                OpCode::Dex => {
+                    self.dex()
+                }
+                OpCode::Dey => {
+                    self.dey()
+                }
+                OpCode::Ldx => {
+                    self.ldx(addr_mode)
+                }
+                OpCode::Ldy => {
+                    self.ldy(addr_mode)
+                }
+                OpCode::Lda => {
+                    self.lda(addr_mode)
+                }
+                OpCode::Sta => {
+                    self.sta(addr_mode)
+                }
+                OpCode::Stx => {
+                    self.stx(addr_mode)
+                }
             }
-            Some(OpCode::Cld) => {
-                self.cld()
-            }
-            Some(OpCode::Cpx(addr_mode)) => {
-                self.cpx(addr_mode)
-            }
-            Some(OpCode::Bne) => {
-                self.bne()
-            }
-            Some(OpCode::Bpl(AddrMode::Relative)) => {
-                self.bpl()
-            }
-            Some(OpCode::Txs) => {
-                self.txs()
-            }
-            Some(OpCode::Inx) => {
-                self.inx()
-            }
-            Some(OpCode::Dex) => {
-                self.dex()
-            }
-            Some(OpCode::Dey) => {
-                self.dey()
-            }
-            Some(OpCode::Ldx(addr_mode)) => {
-                self.ldx(addr_mode)
-            }
-            Some(OpCode::Ldy(addr_mode)) => {
-                self.ldy(addr_mode)
-            }
-            Some(OpCode::Lda(addr_mode)) => {
-                self.lda(addr_mode)
-            }
-            Some(OpCode::Sta(addr_mode)) => {
-                self.sta(addr_mode)
-            }
-            Some(OpCode::Stx(addr_mode)) => {
-                self.stx(addr_mode)
-            }
-            _ => panic!("unknown instruction: {:#04X}: {:#04X} {:?}",
-                        self.pc, instruction.byte_code, instruction.op_code)
+        } else {
+            panic!("unknown instruction: {:#04X}: {:#04X}", self.pc, byte_code)
         };
+
         self.pc += step.pc_inc as u16;
         self.cycles_to_finish = step.cycles;
 
         true
     }
 
-    pub fn get_instruction(&mut self, pc: u16) -> Instruction {
+    pub fn get_instruction(&mut self, pc: u16) -> (Option<Instruction>, u8) {
         let byte_code = self.bus.read_8(pc);
-        let (op_code, size) = OP_CODES[byte_code as usize];
-        Instruction {
-            byte_code,
-            op_code,
-            size,
-        }
+        let instruction = OP_CODES[byte_code as usize];
+        (instruction, byte_code)
     }
 
     /// set interrupt disable
