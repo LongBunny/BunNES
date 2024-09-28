@@ -1,8 +1,7 @@
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use crate::nes::cpu::{HEIGHT, RenderImage, WIDTH};
+use crate::nes::cpu::RenderImage;
 use crate::nes::ppu::Ppu;
 use crate::nes::rom::Cartridge;
+use std::sync::{Arc, Mutex};
 
 const RAM_CAP: usize = 2 * 1024;
 pub(crate) type Ram = [u8; RAM_CAP];
@@ -53,6 +52,15 @@ impl Bus {
             }
             _ => unimplemented!("write for addr [{:#04X}]", addr)
         }
+    }
+    
+    pub fn memory_chunk(&mut self, start_addr: u16, size: usize) -> Vec<u8> {
+        let mut result = vec![0; size];
+        for i in 0..size {
+            let addr = start_addr + i as u16;
+                result[i] = self.map_addr(addr);
+        }
+        result
     }
 
     fn map_addr(&mut self, addr: u16) -> u8 {

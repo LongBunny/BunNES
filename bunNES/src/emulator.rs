@@ -37,6 +37,6 @@ impl Emulator {
     }
     
     pub fn step(&mut self) {
-        self.cpu.step();
+        while !self.cpu.step() {}
     }
 }
