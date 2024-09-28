@@ -21,12 +21,12 @@ impl Emulator {
     
     pub fn reset(&mut self) {
         // probably a good idea
-        self.cpu.reset();
+        self.cpu.soft_reset();
     }
 
     pub fn run(mut self) {
 
-        self.cpu.reset();
+        self.cpu.soft_reset();
 
         let threads = thread::spawn(move || {
             self.cpu.run();

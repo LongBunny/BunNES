@@ -58,6 +58,10 @@ impl Window {
             if d.is_key_pressed(KeyboardKey::KEY_SPACE) {
                 self.running = !self.running;
             }
+            
+            if d.is_key_pressed(KeyboardKey::KEY_R) {
+                self.emulator.reset();
+            }
 
             if d.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
                 let mouse_pos = d.get_mouse_position();

@@ -138,7 +138,7 @@ impl Cpu {
         }
     }
 
-    pub fn reset(&mut self) {
+    pub fn soft_reset(&mut self) {
         println!("reset!");
         println!("rom size: {}", self.bus.rom_len());
         let reset: u16 = self.bus.read_8(0xFFFC) as u16 | (self.bus.read_8(0xFFFD) as u16) << 8;
