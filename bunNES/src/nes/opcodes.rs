@@ -1,35 +1,77 @@
+use std::fmt::{Display, Formatter};
 use crate::nes::opcodes::AddrMode::*;
 use crate::nes::opcodes::OpCode::*;
 
 #[derive(Debug, Copy, Clone)]
-pub(crate) enum AddrMode {
-    Abs,
+pub enum AddrMode {
     Implicit,
+    Accumulator,
     Immediate,
+    Zp,
+    ZpX,
+    ZpY,
+    Relative,
     Absolute,
     AbsoluteX,
-    Relative,
+    AbsoluteY,
+    Indirect,
+    IndirectIndexed,
+    IndexedIndirect,
 }
 
 #[derive(Debug, Copy, Clone)]
-pub(crate) enum OpCode {
+pub struct Instruction {
+    pub op_code: OpCode,
+    pub addr_mode: AddrMode,
+    pub size: u8,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum OpCode {
     Sei,
     Cld,
     Txs,
-    Cpx(AddrMode),
+    Cpx,
     Bne,
-    Bpl(AddrMode),
+    Bpl,
     Inx,
     Dex,
     Dey,
-    Ldx(AddrMode),
-    Ldy(AddrMode),
-    Lda(AddrMode),
-    Sta(AddrMode),
-    Stx(AddrMode),
+    Ldx,
+    Ldy,
+    Lda,
+    Sta,
+    Stx,
 }
 
-pub static OP_CODES: [Option<OpCode>; 256] = [
+impl OpCode {
+    fn to_string(&self) -> &str {
+        match self {            
+            Sei => "SEI",
+            Cld => "CLD",
+            Txs => "TXS",
+            Cpx => "CPX",
+            Bne => "BNE",
+            Bpl => "BPL",
+            Inx => "INX",
+            Dex => "DEX",
+            Dey => "DEY",
+            Ldx => "LDX",
+            Ldy => "LDY",
+            Lda => "LDA",
+            Sta => "STA",
+            Stx => "STX",
+        }
+    }
+}
+
+impl Display for OpCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
+pub static OP_CODES: [(Option<Instruction>); 256] = [
     None, // 0x00
     None, // 0x01
     None, // 0x02
@@ -46,7 +88,7 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0x0d
     None, // 0x0e
     None, // 0x0f
-    Some(Bpl(Relative)), // 0x10
+    Some(Instruction { op_code: Bpl, addr_mode: Relative, size: 2}), // 0x10
     None, // 0x11
     None, // 0x12
     None, // 0x13
@@ -150,7 +192,7 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0x75
     None, // 0x76
     None, // 0x77
-    Some(Sei), // 0x78
+    Some(Instruction { op_code: Sei, addr_mode: Implicit, size: 1}), // 0x78
     None, // 0x79
     None, // 0x7a
     None, // 0x7b
@@ -166,13 +208,13 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0x85
     None, // 0x86
     None, // 0x87
-    Some(Dey), // 0x88
+    Some(Instruction { op_code: Dey, addr_mode: Implicit, size: 1}), // 0x88
     None, // 0x89
     None, // 0x8a
     None, // 0x8b
     None, // 0x8c
-    Some(Sta(Absolute)), // 0x8d
-    Some(Stx(Absolute)), // 0x8e
+    Some(Instruction { op_code: Sta, addr_mode: Absolute, size: 3}), // 0x8d
+    Some(Instruction { op_code: Stx, addr_mode: Absolute, size: 3}), // 0x8e
     None, // 0x8f
     None, // 0x90
     None, // 0x91
@@ -184,26 +226,26 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0x97
     None, // 0x98
     None, // 0x99
-    Some(Txs), // 0x9a
+    Some(Instruction { op_code: Txs, addr_mode: Implicit, size: 1}), // 0x9a
     None, // 0x9b
     None, // 0x9c
     None, // 0x9d
     None, // 0x9e
     None, // 0x9f
-    Some(Ldy(Immediate)), // 0xa0
+    Some(Instruction { op_code: Ldy, addr_mode: Immediate, size: 2}), // 0xa0
     None, // 0xa1
-    Some(Ldx(Immediate)), // 0xa2
+    Some(Instruction { op_code: Ldx, addr_mode: Immediate, size: 2}), // 0xa2
     None, // 0xa3
     None, // 0xa4
     None, // 0xa5
     None, // 0xa6
     None, // 0xa7
     None, // 0xa8
-    Some(Lda(Immediate)), // 0xa9
+    Some(Instruction { op_code: Lda, addr_mode: Immediate, size: 2}), // 0xa9
     None, // 0xaa
     None, // 0xab
     None, // 0xac
-    Some(Lda(Absolute)), // 0xad
+    Some(Instruction { op_code: Lda, addr_mode: Absolute, size: 3}), // 0xad
     None, // 0xae
     None, // 0xaf
     None, // 0xb0
@@ -219,7 +261,7 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0xba
     None, // 0xbb
     None, // 0xbc
-    Some(Lda(AbsoluteX)), // 0xbd
+    Some(Instruction { op_code: Lda, addr_mode: AbsoluteX, size: 3}), // 0xbd
     None, // 0xbe
     None, // 0xbf
     None, // 0xc0
@@ -232,13 +274,13 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0xc7
     None, // 0xc8
     None, // 0xc9
-    Some(Dex), // 0xca
+    Some(Instruction { op_code: Dex, addr_mode: Implicit, size: 1}), // 0xca
     None, // 0xcb
     None, // 0xcc
     None, // 0xcd
     None, // 0xce
     None, // 0xcf
-    Some(Bne), // 0xd0
+    Some(Instruction { op_code: Bne, addr_mode: Implicit, size: 1}), // 0xd0
     None, // 0xd1
     None, // 0xd2
     None, // 0xd3
@@ -246,7 +288,7 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0xd5
     None, // 0xd6
     None, // 0xd7
-    Some(Cld), // 0xd8
+    Some(Instruction { op_code: Cld, addr_mode: Implicit, size: 1}), // 0xd8
     None, // 0xd9
     None, // 0xda
     None, // 0xdb
@@ -254,7 +296,7 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0xdd
     None, // 0xde
     None, // 0xdf
-    Some(Cpx(Immediate)), // 0xe0
+    Some(Instruction { op_code: Cpx, addr_mode: Immediate, size: 2}), // 0xe0
     None, // 0xe1
     None, // 0xe2
     None, // 0xe3
@@ -262,7 +304,7 @@ pub static OP_CODES: [Option<OpCode>; 256] = [
     None, // 0xe5
     None, // 0xe6
     None, // 0xe7
-    Some(Inx), // 0xe8
+    Some(Instruction { op_code: Inx, addr_mode: Implicit, size: 1}), // 0xe8
     None, // 0xe9
     None, // 0xea
     None, // 0xeb

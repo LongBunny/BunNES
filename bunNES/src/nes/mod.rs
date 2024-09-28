@@ -1,5 +1,5 @@
 pub mod rom;
 pub mod cpu;
-mod opcodes;
+pub mod opcodes;
 mod ppu;
 mod bus;

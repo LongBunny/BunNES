@@ -1,20 +1,17 @@
-use std::sync::mpsc::Sender;
+use crate::nes::bus::Bus;
+use crate::nes::opcodes::{AddrMode, Instruction, OpCode, OP_CODES};
+use crate::nes::rom::Cartridge;
+use bit::BitIndex;
 use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
-use bit::BitIndex;
-use rand::random;
-use crate::nes::bus::Bus;
-use crate::nes::opcodes::{AddrMode, OP_CODES, OpCode};
-use crate::nes::rom::Cartridge;
-
 
 pub const WIDTH: u32 = 256 + 100;
 pub const HEIGHT: u32 = 240;
 
 pub type RenderImage = Vec<u8>;
 
-struct ProcessorStatus {
+pub struct ProcessorStatus {
     /// [0] carry
     /// [1] zero
     /// [2] irqb disable
@@ -33,7 +30,7 @@ impl ProcessorStatus {
         }
     }
 
-    fn carry(&self) -> bool {
+    pub fn carry(&self) -> bool {
         self.reg.bit(0)
     }
 
@@ -41,7 +38,7 @@ impl ProcessorStatus {
         self.reg.set_bit(0, value);
     }
 
-    fn zero(&self) -> bool {
+    pub fn zero(&self) -> bool {
         self.reg.bit(1)
     }
 
@@ -49,7 +46,7 @@ impl ProcessorStatus {
         self.reg.set_bit(1, value);
     }
 
-    fn irqb(&self) -> bool {
+    pub fn irqb(&self) -> bool {
         self.reg.bit(2)
     }
 
@@ -57,7 +54,7 @@ impl ProcessorStatus {
         self.reg.set_bit(2, value);
     }
 
-    fn decimal(&self) -> bool {
+    pub fn decimal(&self) -> bool {
         self.reg.bit(3)
     }
 
@@ -65,7 +62,7 @@ impl ProcessorStatus {
         self.reg.set_bit(3, value);
     }
 
-    fn brk(&self) -> bool {
+    pub fn brk(&self) -> bool {
         self.reg.bit(4)
     }
 
@@ -73,7 +70,7 @@ impl ProcessorStatus {
         self.reg.set_bit(4, value);
     }
 
-    fn overflow(&self) -> bool {
+    pub fn overflow(&self) -> bool {
         self.reg.bit(6)
     }
 
@@ -81,14 +78,13 @@ impl ProcessorStatus {
         self.reg.set_bit(6, value);
     }
 
-    fn negative(&self) -> bool {
+    pub fn negative(&self) -> bool {
         self.reg.bit(7)
     }
 
     fn set_negative(&mut self, value: bool) {
         self.reg.set_bit(7, value);
     }
-
 }
 
 struct Step {
@@ -100,7 +96,7 @@ impl Step {
     fn next(bytes: u8, cycles: u8) -> Step {
         Step {
             cycles,
-            pc_inc: bytes
+            pc_inc: bytes,
         }
     }
 }
@@ -108,21 +104,21 @@ impl Step {
 #[allow(unused_variables, dead_code)]
 pub struct Cpu {
     /// program counter
-    pc: u16,
+    pub pc: u16,
     /// stack pointer
-    sp: u8,
+    pub sp: u8,
     /// accumulator
-    acc: u8,
+    pub acc: u8,
     /// index register x
-    x: u8,
+    pub x: u8,
     /// index register y
-    y: u8,
+    pub y: u8,
     /// processor status
-    ps: ProcessorStatus,
+    pub ps: ProcessorStatus,
 
-    bus: Bus,
+    pub bus: Bus,
 
-    cycles_to_finish: u8,
+    pub cycles_to_finish: u8,
 }
 
 
@@ -154,6 +150,7 @@ impl Cpu {
         let time_per_frame: Duration = Duration::from_secs_f32(1f32 / 60f32);
         let mut now = Instant::now();
         let mut frame_count: u64 = 0;
+
         // frame every 16ms (60 fps)
 
         loop {
@@ -173,8 +170,8 @@ impl Cpu {
                 let mut image = self.bus.ppu.image.lock().unwrap();
 
                 for pixel in image.chunks_exact_mut(4) {
-                    let color: u8 = random();
-                    pixel.copy_from_slice(&[color, color, color, color]);
+                    // let color: u8 = random();
+                    pixel.copy_from_slice(&[0, 0, 0, 255]);
                 }
             }
 
@@ -216,62 +213,74 @@ impl Cpu {
         self.ps.set_negative(value.bit(7) == true);
     }
 
-    pub fn step(&mut self) {
+    pub fn step(&mut self) -> bool {
         if self.cycles_to_finish > 0 {
             self.cycles_to_finish -= 1;
-            return;
+            return false;
         }
 
-        let op_code = self.bus.read_8(self.pc);
-        let inst = OP_CODES[op_code as usize];
-        // println!("pc: {:#04X} op_code: {:#04X?} op: {:?}", self.pc, op_code, inst);
-        let step = match inst {
-            Some(OpCode::Sei) => {
-                self.sei()
+        let (instruction, byte_code) = self.get_instruction(self.pc);
+
+        let step: Step = if let Some(instruction) = instruction {
+            let addr_mode = instruction.addr_mode;
+            match instruction.op_code {
+                OpCode::Sei => {
+                    self.sei()
+                }
+                OpCode::Cld => {
+                    self.cld()
+                }
+                OpCode::Cpx => {
+                    self.cpx(addr_mode)
+                }
+                OpCode::Bne => {
+                    self.bne()
+                }
+                OpCode::Bpl => {
+                    self.bpl()
+                }
+                OpCode::Txs => {
+                    self.txs()
+                }
+                OpCode::Inx => {
+                    self.inx()
+                }
+                OpCode::Dex => {
+                    self.dex()
+                }
+                OpCode::Dey => {
+                    self.dey()
+                }
+                OpCode::Ldx => {
+                    self.ldx(addr_mode)
+                }
+                OpCode::Ldy => {
+                    self.ldy(addr_mode)
+                }
+                OpCode::Lda => {
+                    self.lda(addr_mode)
+                }
+                OpCode::Sta => {
+                    self.sta(addr_mode)
+                }
+                OpCode::Stx => {
+                    self.stx(addr_mode)
+                }
             }
-            Some(OpCode::Cld) => {
-                self.cld()
-            }
-            Some(OpCode::Cpx(addr_mode)) => {
-                self.cpx(addr_mode)
-            },
-            Some(OpCode::Bne) => {
-                self.bne()
-            },
-            Some(OpCode::Bpl(AddrMode::Relative)) => {
-                self.bpl()
-            }
-            Some(OpCode::Txs) => {
-                self.txs()
-            }
-            Some(OpCode::Inx) => {
-                self.inx()
-            }
-            Some(OpCode::Dex) => {
-                self.dex()
-            }
-            Some(OpCode::Dey) => {
-                self.dey()
-            }
-            Some(OpCode::Ldx(addr_mode)) => {
-                self.ldx(addr_mode)
-            }
-            Some(OpCode::Ldy(addr_mode)) => {
-                self.ldy(addr_mode)
-            }
-            Some(OpCode::Lda(addr_mode)) => {
-                self.lda(addr_mode)
-            }
-            Some(OpCode::Sta(addr_mode)) => {
-                self.sta(addr_mode)
-            }
-            Some(OpCode::Stx(addr_mode)) => {
-                self.stx(addr_mode)
-            }
-            _ => panic!("unknown instruction: {:#04X}: {op_code:#04X} {inst:?}", self.pc)
+        } else {
+            panic!("unknown instruction: {:#04X}: {:#04X}", self.pc, byte_code)
         };
+
         self.pc += step.pc_inc as u16;
         self.cycles_to_finish = step.cycles;
+
+        true
+    }
+
+    pub fn get_instruction(&mut self, pc: u16) -> (Option<Instruction>, u8) {
+        let byte_code = self.bus.read_8(pc);
+        let instruction = OP_CODES[byte_code as usize];
+        (instruction, byte_code)
     }
 
     /// set interrupt disable
@@ -286,8 +295,8 @@ impl Cpu {
     }
 
     fn txs(&mut self) -> Step {
-            self.sp = self.x;
-            Step::next(1, 2)
+        self.sp = self.x;
+        Step::next(1, 2)
     }
 
     fn inx(&mut self) -> Step {
@@ -315,8 +324,8 @@ impl Cpu {
         let (value, step) = match addr_mode {
             AddrMode::Immediate => {
                 let value = self.bus.read_8(self.pc + 1);
-                (value ,Step::next(2, 2))
-            },
+                (value, Step::next(2, 2))
+            }
             _ => panic!("unimplemented: cpx {addr_mode:?}")
         };
         self.set_carry(self.x, value);
@@ -349,7 +358,7 @@ impl Cpu {
         if self.ps.negative() == false {
             // this is cheating :)
             let mut addr = self.pc as i32;
-             addr += offset as i32;
+            addr += offset as i32;
             self.pc = addr as u16;
         }
         // todo: cycles can be 2, 3 or 4
@@ -389,17 +398,17 @@ impl Cpu {
                 let addr = self.bus.read_16(self.pc + 1);
                 let value = self.bus.read_8(addr);
                 (value, Step::next(3, 4))
-            },
+            }
             AddrMode::AbsoluteX => {
                 let addr = self.bus.read_16(self.pc + 1);
                 let (addr, extra_step) = self.add_absolute_x(addr);
                 let value = self.bus.read_8(addr);
                 (value, Step::next(3, 4 + extra_step))
-            },
+            }
             AddrMode::Immediate => {
                 let value = self.bus.read_8(self.pc + 1);
                 (value, Step::next(2, 2))
-            },
+            }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
 
@@ -414,7 +423,7 @@ impl Cpu {
             AddrMode::Absolute => {
                 let addr = self.bus.read_16(self.pc + 1);
                 (addr, Step::next(3, 4))
-            },
+            }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
 
@@ -427,7 +436,7 @@ impl Cpu {
             AddrMode::Absolute => {
                 let addr = self.bus.read_16(self.pc + 1);
                 (addr, Step::next(3, 4))
-            },
+            }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
 
@@ -438,7 +447,7 @@ impl Cpu {
 
     /// returns address with x offset and if it needed an extra cycle
     fn add_absolute_x(&self, addr: u16) -> (u16, u8) {
-        let page_index =  (addr & 0xFF00) / 256;
+        let page_index = (addr & 0xFF00) / 256;
         let addr = addr.wrapping_add(self.x as u16);
         let extra_step = if page_index != ((addr & 0xFF00) / 256) { 1 } else { 0 };
         (addr, extra_step)
