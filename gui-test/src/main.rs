@@ -58,7 +58,7 @@ impl Window {
             if d.is_key_pressed(KeyboardKey::KEY_SPACE) {
                 self.running = !self.running;
             }
-            
+
             if d.is_key_pressed(KeyboardKey::KEY_R) {
                 self.emulator.reset();
             }
@@ -205,10 +205,12 @@ impl Window {
         let cpu = &mut self.emulator.cpu;
 
         if location == cpu.pc {
-            d.draw_rectangle(x - PADDING, y, DEBUG_DISASSEMBLY_WIDTH, FONT_SIZE, Color::YELLOW);
+            d.draw_rectangle(x - PADDING, y, DEBUG_DISASSEMBLY_WIDTH, FONT_SIZE, Color::new(150, 255, 0, 255));
         }
 
-        let size: u8 = if let (Some(instruction), byte_code) = cpu.get_instruction(location) {
+        let (instruction, byte_code) = cpu.get_instruction(location);
+        
+        let size: u8 = if let Some(instruction) = instruction {
             let op_code = instruction.op_code;
             let size = instruction.size;
 
@@ -260,7 +262,7 @@ impl Window {
             self.draw_text(d, &format!("{} {}", op_code, operand_normal), x + 200, y, FONT_SIZE, Color::BLACK);
             size
         } else {
-            self.draw_text(d, "unknown", x, y, FONT_SIZE, Color::BLACK);
+            self.draw_text(d, format!("unknown: {:02X}", byte_code).as_str(), x, y, FONT_SIZE, Color::BLACK);
             1
         };
 

@@ -266,6 +266,9 @@ impl Cpu {
                 OpCode::Stx => {
                     self.stx(addr_mode)
                 }
+                _ => {
+                    unimplemented!("opcode is not implemented yet: {}", instruction.op_code)
+                }
             }
         } else {
             panic!("unknown instruction: {:#04X}: {:#04X}", self.pc, byte_code)
