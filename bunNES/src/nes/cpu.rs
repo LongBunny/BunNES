@@ -86,6 +86,8 @@ impl ProcessorStatus {
     pub fn set_negative(&mut self, value: bool) {
         self.reg.set_bit(7, value);
     }
+
+    pub fn get_reg(&self) -> u8 { self.reg }
 }
 
 struct Step {
@@ -138,7 +140,7 @@ impl Cpu {
             cycles_to_finish: 0,
         }
     }
-    
+
     pub fn soft_reset(&mut self) {
         println!("reset!");
         println!("rom size: {}", self.bus.rom_len());

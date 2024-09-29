@@ -1,5 +1,6 @@
 use bunNES::nes::opcodes::{AddrMode, OpCode};
 use crate::opcodes::helpers::{get_cpu, instruction};
+use bunNES::nes::cpu::Cpu;
 
 #[cfg(test)]
 mod asl {
@@ -246,5 +247,417 @@ mod adc {
         cpu.bus.ram[0x504] = 34;
         cpu.step();
         assert_eq!(cpu.acc, 69);
+    }
+}
+
+#[cfg(test)]
+mod dec {
+    use super::*;
+
+    #[test]
+    fn dec_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Dec, AddrMode::Zp),
+            0x01,
+            instruction(OpCode::Dec, AddrMode::Zp),
+            0x02,
+            instruction(OpCode::Dec, AddrMode::Zp),
+            0x03,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x01] = 2;
+        cpu.bus.ram[0x02] = 1;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+
+    #[test]
+    fn dec_zero_page_x() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Dec, AddrMode::ZpX),
+            0x00,
+            instruction(OpCode::Dec, AddrMode::ZpX),
+            0x01,
+            instruction(OpCode::Dec, AddrMode::ZpX),
+            0x02,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.x = 0x01;
+        cpu.bus.ram[0x01] = 2;
+        cpu.bus.ram[0x02] = 1;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+
+    #[test]
+    fn dec_zero_absolute() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Dec, AddrMode::Absolute),
+            0x01, 0x00,
+            instruction(OpCode::Dec, AddrMode::Absolute),
+            0x02, 0x00,
+            instruction(OpCode::Dec, AddrMode::Absolute),
+            0x03, 0x00,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x01] = 2;
+        cpu.bus.ram[0x02] = 1;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+
+    #[test]
+    fn dec_zero_absolute_x() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Dec, AddrMode::AbsoluteX),
+            0x00, 0x00,
+            instruction(OpCode::Dec, AddrMode::AbsoluteX),
+            0x01, 0x00,
+            instruction(OpCode::Dec, AddrMode::AbsoluteX),
+            0x02, 0x00,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.x = 0x01;
+        cpu.bus.ram[0x01] = 2;
+        cpu.bus.ram[0x02] = 1;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+    
+    fn test_flags(cpu: &mut Cpu) {
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x01], 1);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x02], 0);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x03], 255);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+    }
+}
+
+#[cfg(test)]
+mod dex {
+    use super::*;
+
+    #[test]
+    fn dex_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Dex, AddrMode::Implicit),
+            instruction(OpCode::Dex, AddrMode::Implicit),
+            instruction(OpCode::Dex, AddrMode::Implicit),
+        ];
+        let mut cpu = get_cpu(code);
+
+        cpu.x = 2;
+        while !cpu.step() {};
+        assert_eq!(cpu.x, 1);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+        
+        while !cpu.step() {};
+        assert_eq!(cpu.x, 0);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.x, 255);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+    }
+}
+
+#[cfg(test)]
+mod dey {
+    use super::*;
+
+    #[test]
+    fn dey_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Dey, AddrMode::Implicit),
+            instruction(OpCode::Dey, AddrMode::Implicit),
+            instruction(OpCode::Dey, AddrMode::Implicit),
+        ];
+        let mut cpu = get_cpu(code);
+
+        cpu.y = 2;
+        while !cpu.step() {};
+        assert_eq!(cpu.y, 1);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.y, 0);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.y, 0);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+    }
+}
+
+#[cfg(test)]
+mod inc {
+    use super::*;
+
+    #[test]
+    fn inc_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Inc, AddrMode::Zp),
+            0x01,
+            instruction(OpCode::Inc, AddrMode::Zp),
+            0x02,
+            instruction(OpCode::Inc, AddrMode::Zp),
+            0x03,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x01] = 254;
+        cpu.bus.ram[0x02] = 255;
+        cpu.bus.ram[0x03] = 1;
+
+        test_flags(&mut cpu);
+    }
+
+    #[test]
+    fn inc_zero_page_x() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Inc, AddrMode::ZpX),
+            0x00,
+            instruction(OpCode::Inc, AddrMode::ZpX),
+            0x01,
+            instruction(OpCode::Inc, AddrMode::ZpX),
+            0x02,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.x = 0x01;
+        cpu.bus.ram[0x01] = 254;
+        cpu.bus.ram[0x02] = 255;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+
+    #[test]
+    fn inc_zero_absolute() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Inc, AddrMode::Absolute),
+            0x01, 0x00,
+            instruction(OpCode::Inc, AddrMode::Absolute),
+            0x02, 0x00,
+            instruction(OpCode::Inc, AddrMode::Absolute),
+            0x03, 0x00,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x01] = 254;
+        cpu.bus.ram[0x02] = 255;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+
+    #[test]
+    fn inc_zero_absolute_x() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Inc, AddrMode::AbsoluteX),
+            0x00, 0x00,
+            instruction(OpCode::Inc, AddrMode::AbsoluteX),
+            0x01, 0x00,
+            instruction(OpCode::Inc, AddrMode::AbsoluteX),
+            0x02, 0x00,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.x = 0x01;
+        cpu.bus.ram[0x01] = 254;
+        cpu.bus.ram[0x02] = 255;
+        cpu.bus.ram[0x03] = 0;
+
+        test_flags(&mut cpu);
+    }
+
+    fn test_flags(cpu: &mut Cpu) {
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x01], 255);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x02], 0);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x03], 1);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+    }
+}
+
+#[cfg(test)]
+mod inx {
+    use super::*;
+
+    #[test]
+    fn inx_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Inx, AddrMode::Implicit),
+            instruction(OpCode::Inx, AddrMode::Implicit),
+            instruction(OpCode::Inx, AddrMode::Implicit),
+        ];
+        let mut cpu = get_cpu(code);
+
+        cpu.x = 254;
+        while !cpu.step() {};
+        assert_eq!(cpu.x, 255);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.x, 0);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.x, 1);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+    }
+}
+
+#[cfg(test)]
+mod iny {
+    use super::*;
+
+    #[test]
+    fn iny_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Iny, AddrMode::Implicit),
+            instruction(OpCode::Iny, AddrMode::Implicit),
+            instruction(OpCode::Iny, AddrMode::Implicit),
+        ];
+        let mut cpu = get_cpu(code);
+
+        cpu.y = 254;
+        while !cpu.step() {};
+        assert_eq!(cpu.y, 255);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.y, 0);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        while !cpu.step() {};
+        assert_eq!(cpu.y, 1);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+    }
+}
+
+#[cfg(test)]
+mod lsr {
+    use super::*;
+
+    #[test]
+    fn lsr_flags() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Lsr, AddrMode::Accumulator),
+            instruction(OpCode::Lsr, AddrMode::Accumulator),
+            instruction(OpCode::Lsr, AddrMode::Accumulator),
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.acc = 0b1;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.carry(), true);
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.negative(), false);
+
+        cpu.acc = 0b10;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.carry(), false);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+
+        cpu.acc = 0b1111_1111;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.carry(), true);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), false);
+    }
+
+    #[test]
+    fn lsr_accumulator() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Lsr, AddrMode::Accumulator),
+            instruction(OpCode::Lsr, AddrMode::Accumulator),
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.acc = 8;
+        while !cpu.step() {};
+        assert_eq!(cpu.acc, 4);
+        while !cpu.step() {};
+        assert_eq!(cpu.acc, 2);
+    }
+
+    #[test]
+    fn lsr_zero_page() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Lsr, AddrMode::Zp),
+            1,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[1] = 8;
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[1], 4);
+    }
+
+    #[test]
+    fn lsr_zero_page_x() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Lsr, AddrMode::ZpX),
+            1,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.x = 2;
+        cpu.bus.ram[3] = 8;
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[3], 4);
+    }
+
+    #[test]
+    fn lsr_absolute() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Lsr, AddrMode::Absolute),
+            0x00, 0x01
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x100] = 8;
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x100], 4);
+    }
+
+    #[test]
+    fn lsr_absolute_x() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Lsr, AddrMode::AbsoluteX),
+            0x00, 0x01
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.x = 5;
+        cpu.bus.ram[0x105] = 8;
+        while !cpu.step() {};
+        assert_eq!(cpu.bus.ram[0x105], 4);
     }
 }

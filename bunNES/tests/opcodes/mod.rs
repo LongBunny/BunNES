@@ -24,8 +24,8 @@ mod helpers {
     pub fn get_cpu(mut code: Vec<u8>) -> Cpu {
         code.resize(0x4000, 0);
         // interrupt vector
-        code[0xFFFE] = 0x00;
-        code[0xFFFF] = 0x01;
+        code[0x3FFE] = 0x00;
+        code[0x3FFF] = 0x01;
         let cartridge = Cartridge::test_cartride(code);
 
         Cpu {

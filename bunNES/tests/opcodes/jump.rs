@@ -194,3 +194,38 @@ mod bvs {
     }
 }
 
+#[cfg(test)]
+mod jmp {
+    use super::*;
+
+    #[test]
+    fn jmp() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Bvs, AddrMode::Relative),
+            0x10,
+        ];
+        let mut cpu = get_cpu(code);
+        let initial_pc = cpu.pc;
+        while !cpu.step() {};
+        assert_eq!(cpu.pc, initial_pc + 0x10 + 0x01);
+    }
+}
+
+#[cfg(test)]
+mod jsr {
+    use super::*;
+
+    #[test]
+    fn jsr() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Jsr, AddrMode::Absolute),
+            0x00, 0x01,
+        ];
+        let mut cpu = get_cpu(code);
+        while !cpu.step() {};
+        assert_eq!(cpu.pc, 0x0100);
+        // TODO: check stack
+    }
+}
+
+
