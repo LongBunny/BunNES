@@ -1,6 +1,8 @@
 
-mod lda_tests;
-mod ldx_tests;
+mod load;
+mod jump;
+mod logic;
+mod arithmetic;
 
 #[macro_use]
 mod helpers {
@@ -43,7 +45,7 @@ mod helpers {
         if let Some(byte_code) = op_code_from_instruction(instruction) {
             byte_code as u8
         } else {
-            panic!("Invalid instruction")
+            panic!("Invalid instruction: {} {}", op_code, addr_mode)
         }
     }
     
