@@ -254,8 +254,8 @@ impl Window {
                 AddrMode::AbsoluteX => format!("${:04X}, X", operand_normal),
                 AddrMode::AbsoluteY => format!("${:04X}, Y", operand_normal),
                 AddrMode::Indirect => format!("({:04X})", operand_normal),
-                AddrMode::IndirectIndexed => format!("({:02X}, X)", operand_normal),
-                AddrMode::IndexedIndirect => format!("({:02X}), Y", operand_normal),
+                AddrMode::IndirectX => format!("({:02X}, X)", operand_normal),
+                AddrMode::IndirectY => format!("({:02X}), Y", operand_normal),
             };
 
             self.draw_text(d, &format!("{:04X}: {:02X} {}", location, byte_code, operand), x, y, FONT_SIZE, Color::BLACK);

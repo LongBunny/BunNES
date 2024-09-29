@@ -35,7 +35,7 @@ impl ProcessorStatus {
         self.reg.bit(0)
     }
 
-    fn set_carry(&mut self, value: bool) {
+    pub fn set_carry(&mut self, value: bool) {
         self.reg.set_bit(0, value);
     }
 
@@ -43,7 +43,7 @@ impl ProcessorStatus {
         self.reg.bit(1)
     }
 
-    fn set_zero(&mut self, value: bool) {
+    pub fn set_zero(&mut self, value: bool) {
         self.reg.set_bit(1, value);
     }
 
@@ -51,7 +51,7 @@ impl ProcessorStatus {
         self.reg.bit(2)
     }
 
-    fn set_irqb(&mut self, value: bool) {
+    pub fn set_irqb(&mut self, value: bool) {
         self.reg.set_bit(2, value);
     }
 
@@ -59,7 +59,7 @@ impl ProcessorStatus {
         self.reg.bit(3)
     }
 
-    fn set_decimal(&mut self, value: bool) {
+    pub fn set_decimal(&mut self, value: bool) {
         self.reg.set_bit(3, value);
     }
 
@@ -67,7 +67,7 @@ impl ProcessorStatus {
         self.reg.bit(4)
     }
 
-    fn set_brk(&mut self, value: bool) {
+    pub fn set_brk(&mut self, value: bool) {
         self.reg.set_bit(4, value);
     }
 
@@ -75,7 +75,7 @@ impl ProcessorStatus {
         self.reg.bit(6)
     }
 
-    fn set_overflow(&mut self, value: bool) {
+    pub fn set_overflow(&mut self, value: bool) {
         self.reg.set_bit(6, value);
     }
 
@@ -83,7 +83,7 @@ impl ProcessorStatus {
         self.reg.bit(7)
     }
 
-    fn set_negative(&mut self, value: bool) {
+    pub fn set_negative(&mut self, value: bool) {
         self.reg.set_bit(7, value);
     }
 }
@@ -263,7 +263,7 @@ impl Cpu {
                     self.stx(addr_mode)
                 }
                 _ => {
-                    unimplemented!("opcode is not implemented yet: {}", instruction.op_code)
+                    unimplemented!("opcode is not implemented yet: {} {}", instruction.op_code, instruction.addr_mode)
                 }
             }
         } else {
