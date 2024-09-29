@@ -3,6 +3,7 @@ mod load;
 mod jump;
 mod logic;
 mod arithmetic;
+mod misc;
 
 #[macro_use]
 mod helpers {
@@ -22,11 +23,14 @@ mod helpers {
     
     pub fn get_cpu(mut code: Vec<u8>) -> Cpu {
         code.resize(0x4000, 0);
+        // interrupt vector
+        code[0xFFFE] = 0x00;
+        code[0xFFFF] = 0x01;
         let cartridge = Cartridge::test_cartride(code);
 
         Cpu {
             pc: 0x8000,
-            sp: 0,
+            sp: 0xFF,
             acc: 0,
             x: 0,
             y: 0,

@@ -67,12 +67,17 @@ impl Bus {
         // TODO: replace with mapper
         // mapper 000 hardcoded
         match addr {
+            // ram
             0x0000..=0x1FFF => self.ram[(addr % 0x07FF) as usize],
+            // ppu
             0x2000..=0x3FFF => {
                 self.ppu.register((addr % 8) as u8)
             },
+            // apu
             0x4000..=0x4017 => unimplemented!("APU"),
+            // apu and io
             0x4018..=0x401F => panic!("APU and IO. Should be disabled"),
+            // rom (cartridge)
             0x4020..=0xFFFF => {
                 match addr {
                     0x6000..=0x7FFF => panic!("Cartridge: Family Basic only"),

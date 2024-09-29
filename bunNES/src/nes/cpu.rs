@@ -11,7 +11,7 @@ pub const HEIGHT: u32 = 240;
 
 pub type RenderImage = Vec<u8>;
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug)]
 pub struct ProcessorStatus {
     /// [0] carry
     /// [1] zero
@@ -127,7 +127,7 @@ impl Cpu {
     pub fn new(cartridge: Cartridge) -> Cpu {
         Cpu {
             pc: 0,
-            sp: 0,
+            sp: 0xFF,
             acc: 0,
             x: 0,
             y: 0,
@@ -338,7 +338,7 @@ impl Cpu {
             let offset: i8 = unsafe {
                 std::mem::transmute(self.bus.read_8(self.pc + 1))
             };
-            
+
             let mut addr = self.pc as i32;
             addr += offset as i32;
             self.pc = addr as u16;
@@ -353,7 +353,7 @@ impl Cpu {
             let offset: i8 = unsafe {
                 std::mem::transmute(self.bus.read_8(self.pc + 1))
             };
-            
+
             let mut addr = self.pc as i32;
             addr += offset as i32;
             self.pc = addr as u16;

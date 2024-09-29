@@ -263,3 +263,55 @@ mod and {
         assert_eq!(cpu.ps.negative(), true);
     }
 }
+
+#[cfg(test)]
+mod bit {
+    use super::*;
+
+    #[test]
+    fn bit_zp() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Bit, AddrMode::Zp),
+            0x01,
+            instruction(OpCode::Bit, AddrMode::Zp),
+            0x02,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.acc = 0b0000_0001;
+        cpu.bus.ram[0x01] = 0b0000_0000;
+        cpu.bus.ram[0x02] = 0b1100_0000;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.overflow(), false);
+        assert_eq!(cpu.ps.negative(), false);
+
+        cpu.acc = 0b1111_1111;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.overflow(), true);
+        assert_eq!(cpu.ps.negative(), true);
+    }
+
+    fn bit_absolute() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Bit, AddrMode::Absolute),
+            0x00, 0x01,
+            instruction(OpCode::Bit, AddrMode::Absolute),
+            0x01, 0x01,
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.acc = 0b0000_0001;
+        cpu.bus.ram[0x0100] = 0b0000_0000;
+        cpu.bus.ram[0x0101] = 0b1100_0000;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.zero(), true);
+        assert_eq!(cpu.ps.overflow(), false);
+        assert_eq!(cpu.ps.negative(), false);
+
+        cpu.acc = 0b1111_1111;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.overflow(), true);
+        assert_eq!(cpu.ps.negative(), true);
+    }
+}
