@@ -334,12 +334,11 @@ impl Cpu {
     }
 
     fn bne(&mut self) -> Step {
-        let offset: i8 = unsafe {
-            std::mem::transmute(self.bus.read_8(self.pc + 1))
-        };
-
         if self.ps.zero() == false {
-            // this is cheating :)
+            let offset: i8 = unsafe {
+                std::mem::transmute(self.bus.read_8(self.pc + 1))
+            };
+            
             let mut addr = self.pc as i32;
             addr += offset as i32;
             self.pc = addr as u16;
@@ -350,12 +349,11 @@ impl Cpu {
     }
 
     fn bpl(&mut self) -> Step {
-        let offset: i8 = unsafe {
-            std::mem::transmute(self.bus.read_8(self.pc + 1))
-        };
-
         if self.ps.negative() == false {
-            // this is cheating :)
+            let offset: i8 = unsafe {
+                std::mem::transmute(self.bus.read_8(self.pc + 1))
+            };
+            
             let mut addr = self.pc as i32;
             addr += offset as i32;
             self.pc = addr as u16;
