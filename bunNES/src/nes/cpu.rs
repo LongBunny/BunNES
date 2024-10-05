@@ -232,6 +232,7 @@ impl Cpu {
         let (instruction, byte_code) = self.get_instruction(self.pc);
 
         let step: Step = if let Some(instruction) = instruction {
+            // TODO: use size from instruction for step size
             let addr_mode = instruction.addr_mode;
             match instruction.op_code {
                 OpCode::Adc => self.adc(addr_mode),
@@ -328,19 +329,19 @@ impl Cpu {
             AddrMode::Absolute => {
                 let arg = self.bus.read_16(self.pc + 1);
                 let value = self.bus.read_8(arg);
-                (value, Step::next(2, 4))
+                (value, Step::next(3, 4))
             }
             AddrMode::AbsoluteX => {
                 let arg = self.bus.read_16(self.pc + 1);
                 let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.x as u16);
                 let value = self.bus.read_8(addr);
-                (value, Step::next(2, 4 + extra_step))
+                (value, Step::next(3, 4 + extra_step))
             }
             AddrMode::AbsoluteY => {
                 let arg = self.bus.read_16(self.pc + 1);
                 let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.y as u16);
                 let value = self.bus.read_8(addr);
-                (value, Step::next(2, 4 + extra_step))
+                (value, Step::next(3, 4 + extra_step))
             }
             AddrMode::IndirectX => {
                 let addr = self.addr_indirect_x();
@@ -562,7 +563,74 @@ impl Cpu {
     }
     
     fn cmp(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        let (value, step) = match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            }
+            AddrMode::Zp => {
+                let arg = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp(arg);
+                (value, Step::next(2, 3))
+            }
+            AddrMode::ZpX => {
+                let arg = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp_offset(arg, self.x);
+                (value, Step::next(2, 4))
+            }
+            AddrMode::Absolute => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(arg);
+                (value, Step::next(3, 4))
+            }
+            AddrMode::AbsoluteX => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.x as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            AddrMode::AbsoluteY => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.y as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            AddrMode::IndirectX => {
+                let addr = self.addr_indirect_x();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 6))
+            }
+            AddrMode::IndirectY => {
+                let (addr, extra_step) = self.addr_indirect_y();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 5 + extra_step))
+            }
+            _ => panic!("unknown addr_mode: adc {addr_mode:?}")
+        };
+        
+        // TODO: :(
+        let result = self.acc.wrapping_sub(value);
+        
+        if result < value {
+            self.ps.set_carry(false);
+            self.ps.set_zero(false);
+            self.ps.set_negative(result.bit(7));
+        } else if result == value {
+            self.ps.set_carry(true);
+            self.ps.set_zero(true);
+            self.ps.set_negative(false);
+        } else {
+            self.ps.set_carry(true);
+            self.ps.set_zero(false);
+            self.ps.set_negative(result.bit(7));
+        }
+        // self.ps.set_carry(self.acc >= value);
+        // self.ps.set_zero(self.acc == value);
+        // 
+        // self.ps.set_negative(result.bit(7));
+        
+        step
+        
     }
     
     fn cpx(&mut self, addr_mode: AddrMode) -> Step {

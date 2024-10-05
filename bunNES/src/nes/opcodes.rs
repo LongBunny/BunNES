@@ -50,7 +50,8 @@ impl Display for AddrMode {
 pub struct Instruction {
     pub op_code: OpCode,
     pub addr_mode: AddrMode,
-    // TODO: remove
+    // TODO: remove (actually dont!)
+    // use in op code logic
     pub size: u8,
 }
 

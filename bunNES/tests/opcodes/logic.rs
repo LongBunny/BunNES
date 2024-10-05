@@ -403,23 +403,26 @@ mod cmp {
 
 
     fn test_flags(cpu: &mut Cpu) {
+        // less
         cpu.acc = 0;
         while !cpu.step() {};
-        assert_eq!(cpu.ps.carry(), false);
+        assert_eq!(cpu.ps.carry(), true);
+        assert_eq!(cpu.ps.zero(), false);
+        assert_eq!(cpu.ps.negative(), true);
+
+        // greater
+        cpu.acc = 35;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.carry(), true);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
 
-        cpu.acc = 35;
+        // eq
+        cpu.acc = 255;
         while !cpu.step() {};
         assert_eq!(cpu.ps.carry(), true);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
-
-        cpu.acc = 255;
-        while !cpu.step() {};
-        assert_eq!(cpu.ps.carry(), false);
-        assert_eq!(cpu.ps.zero(), true);
-        assert_eq!(cpu.ps.negative(), true);
     }
 
 }
