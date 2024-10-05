@@ -346,11 +346,11 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Sta, addr_mode: Zp, size: 2 }), // 0x92
     None, // 0x93
     Some(Instruction { op_code: Sty, addr_mode: ZpX, size: 2 }), // 0x94
-    Some(Instruction { op_code: Sta, addr_mode: ZpY, size: 2 }), // 0x95
+    Some(Instruction { op_code: Sta, addr_mode: ZpX, size: 2 }), // 0x95
     Some(Instruction { op_code: Stx, addr_mode: ZpY, size: 2 }), // 0x96
     None, // 0x97
     Some(Instruction { op_code: Tya, addr_mode: Implicit, size: 1 }), // 0x98
-    Some(Instruction { op_code: Sta, addr_mode: AbsoluteX, size: 3 }), // 0x99
+    Some(Instruction { op_code: Sta, addr_mode: AbsoluteY, size: 3 }), // 0x99
     Some(Instruction { op_code: Txs, addr_mode: Implicit, size: 1 }), // 0x9a
     None, // 0x9b
     None, // 0x9c

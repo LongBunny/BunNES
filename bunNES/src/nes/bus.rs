@@ -50,7 +50,10 @@ impl Bus {
             0x2000..=0x3FFF => {
                 self.ppu.set_register((addr % 8) as u8, value);
             }
-            _ => unimplemented!("write for addr [{:#04X}]", addr)
+            // ram
+            0x0000..=0x1FFF => self.ram[(addr % 0x07FF) as usize] = value,
+            _ => unimplemented!("write for addr [{:#04X}]", addr),
+            
         }
     }
     

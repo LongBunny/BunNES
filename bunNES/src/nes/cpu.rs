@@ -372,33 +372,7 @@ impl Cpu {
         // https://www.nesdev.org/obelisk-6502-guide/reference.html#BPL
         Step::next(2, 2)
     }
-
-    fn ldx(&mut self, addr_mode: AddrMode) -> Step {
-        match addr_mode {
-            AddrMode::Immediate => {
-                let value = self.bus.read_8(self.pc + 1);
-                self.x = value;
-                self.set_zero(value);
-                self.set_negative(value);
-                Step::next(2, 2)
-            }
-            _ => panic!("unimplemented: lda {addr_mode:?}")
-        }
-    }
-
-    fn ldy(&mut self, addr_mode: AddrMode) -> Step {
-        match addr_mode {
-            AddrMode::Immediate => {
-                let value = self.bus.read_8(self.pc + 1);
-                self.y = value;
-                self.set_zero(value);
-                self.set_negative(value);
-                Step::next(2, 2)
-            }
-            _ => panic!("unimplemented: lda {addr_mode:?}")
-        }
-    }
-
+    
     fn lda(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Immediate => {
@@ -407,12 +381,12 @@ impl Cpu {
             }
             AddrMode::Zp => {
                 let addr = self.bus.read_8(self.pc + 1);
-                let value = self.zp(addr);
+                let value = self.value_zp(addr);
                 (value, Step::next(2, 3))
             }
             AddrMode::ZpX => {
                 let addr = self.bus.read_8(self.pc + 1);
-                let value = self.zp_x(addr, self.x);
+                let value = self.value_zp_offset(addr, self.x);
                 (value, Step::next(2, 4))
             }
             AddrMode::Absolute => {
@@ -438,14 +412,86 @@ impl Cpu {
                 (value, Step::next(2, 6))
             }
             AddrMode::IndirectY => {
-                let (addr, extra_step) = self.indirect_y();
+                let (addr, extra_step) = self.addr_indirect_y();
                 let value = self.bus.read_8(addr);
                 (value, Step::next(2, 5 + extra_step))
             }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
-
+        
         self.acc = value;
+        self.set_zero(value);
+        self.set_negative(value);
+        step
+    }
+
+    fn ldx(&mut self, addr_mode: AddrMode) -> Step {
+        let (value, step) = match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            }
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp(addr);
+                (value, Step::next(2, 3))
+            }
+            AddrMode::ZpY => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp_offset(addr, self.y);
+                (value, Step::next(2, 4))
+            }
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4))
+            }
+            AddrMode::AbsoluteY => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(addr, self.y as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        };
+        
+        self.x = value;
+        self.set_zero(value);
+        self.set_negative(value);
+        step
+    }
+
+    fn ldy(&mut self, addr_mode: AddrMode) -> Step {
+        let (value, step) = match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            }
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp(addr);
+                (value, Step::next(2, 3))
+            }
+            AddrMode::ZpX => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp_offset(addr, self.x);
+                (value, Step::next(2, 4))
+            }
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4))
+            }
+            AddrMode::AbsoluteX => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(addr, self.x as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        };
+        
+        self.y = value;
         self.set_zero(value);
         self.set_negative(value);
         step
@@ -453,9 +499,36 @@ impl Cpu {
 
     fn sta(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1) as u16;
+                (addr, Step::next(2, 3))
+            }
+            AddrMode::ZpX => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let addr = addr.wrapping_add(self.x) as u16;
+                (addr, Step::next(2, 3))
+            }
             AddrMode::Absolute => {
                 let addr = self.bus.read_16(self.pc + 1);
                 (addr, Step::next(3, 4))
+            }
+            AddrMode::AbsoluteX => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let addr = addr.wrapping_add(self.x as u16);
+                (addr, Step::next(3, 5))
+            }
+            AddrMode::AbsoluteY => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let addr = addr.wrapping_add(self.y as u16);
+                (addr, Step::next(3, 5))
+            }
+            AddrMode::IndirectX => {
+                let addr = self.addr_indirect_x();
+                (addr, Step::next(2, 6))
+            }
+            AddrMode::IndirectY => {
+                let (addr, _) = self.addr_indirect_y();
+                (addr, Step::next(2, 6))
             }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
@@ -477,17 +550,13 @@ impl Cpu {
         step
     }
     
-    fn zp(&self, addr: u8) -> u8 {
-        self.zp_x(addr, 0)
+    fn value_zp(&self, addr: u8) -> u8 {
+        self.value_zp_offset(addr, 0)
     }
     
-    fn zp_x(&self, addr: u8, x: u8) -> u8 {
-        let addr = addr.wrapping_add(x);
+    fn value_zp_offset(&self, addr: u8, offset: u8) -> u8 {
+        let addr = addr.wrapping_add(offset);
         self.bus.ram[addr as usize]
-    }
-    
-    fn zp_y(&self, addr: u8, y: u8) -> u8 {
-        unimplemented!()
     }
     
     /// returns address with offset and if it needed an extra cycle on page boundary cross
@@ -505,7 +574,7 @@ impl Cpu {
         
     }
     
-    fn indirect_y(&mut self) -> (u16, ExtraStep) {
+    fn addr_indirect_y(&mut self) -> (u16, ExtraStep) {
         let param = self.bus.read_16(self.pc + 1);
         let fetched_addr = self.bus.read_16(param);
         let addr = fetched_addr + self.y as u16;
