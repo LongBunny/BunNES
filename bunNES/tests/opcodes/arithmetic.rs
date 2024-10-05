@@ -955,7 +955,12 @@ mod sbc {
             instruction(OpCode::Sbc, AddrMode::Immediate),
             10,
         ];
+        /*
+
+            0b0001 - 0b0001 = 0b0000
+            0b0001 - 0b0002 = 0b1000
         
+         */
         
         let mut cpu = get_cpu(code);
         cpu.ps.set_carry(true);
