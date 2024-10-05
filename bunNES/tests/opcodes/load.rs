@@ -611,19 +611,19 @@ mod txa {
             instruction(OpCode::Txa, AddrMode::Implicit),
         ];
         let mut cpu = get_cpu(code);
-        cpu.sp = 69;
+        cpu.x = 69;
         while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
         
-        cpu.sp = 0;
+        cpu.x = 0;
         while !cpu.step() {};
         assert_eq!(cpu.acc, 0);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
         
-        cpu.sp = 255;
+        cpu.x = 255;
         while !cpu.step() {};
         assert_eq!(cpu.acc, 255);
         assert_eq!(cpu.ps.zero(), false);

@@ -2,7 +2,6 @@ use crate::nes::bus::Bus;
 use crate::nes::opcodes::{AddrMode, Instruction, OpCode, OP_CODES};
 use crate::nes::rom::Cartridge;
 use bit::BitIndex;
-use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
@@ -230,48 +229,26 @@ impl Cpu {
         let step: Step = if let Some(instruction) = instruction {
             let addr_mode = instruction.addr_mode;
             match instruction.op_code {
-                OpCode::Sei => {
-                    self.sei()
-                }
-                OpCode::Cld => {
-                    self.cld()
-                }
-                OpCode::Cpx => {
-                    self.cpx(addr_mode)
-                }
-                OpCode::Bne => {
-                    self.bne()
-                }
-                OpCode::Bpl => {
-                    self.bpl()
-                }
-                OpCode::Txs => {
-                    self.txs()
-                }
-                OpCode::Inx => {
-                    self.inx()
-                }
-                OpCode::Dex => {
-                    self.dex()
-                }
-                OpCode::Dey => {
-                    self.dey()
-                }
-                OpCode::Ldx => {
-                    self.ldx(addr_mode)
-                }
-                OpCode::Ldy => {
-                    self.ldy(addr_mode)
-                }
-                OpCode::Lda => {
-                    self.lda(addr_mode)
-                }
-                OpCode::Sta => {
-                    self.sta(addr_mode)
-                }
-                OpCode::Stx => {
-                    self.stx(addr_mode)
-                }
+                OpCode::Sei => self.sei(),
+                OpCode::Cld => self.cld(),
+                OpCode::Cpx => self.cpx(addr_mode),
+                OpCode::Bne => self.bne(),
+                OpCode::Bpl => self.bpl(),
+                OpCode::Txs => self.txs(),
+                OpCode::Inx => self.inx(),
+                OpCode::Dex => self.dex(),
+                OpCode::Dey => self.dey(),
+                OpCode::Ldx => self.ldx(addr_mode),
+                OpCode::Ldy => self.ldy(addr_mode),
+                OpCode::Lda => self.lda(addr_mode),
+                OpCode::Sta => self.sta(addr_mode),
+                OpCode::Stx => self.stx(addr_mode),
+                OpCode::Sty => self.sty(addr_mode),
+                OpCode::Tax => self.tax(),
+                OpCode::Tay => self.tay(),
+                OpCode::Tsx => self.tsx(),
+                OpCode::Txa => self.txa(),
+                OpCode::Tya => self.tya(),
                 _ => {
                     unimplemented!("opcode is not implemented yet: {} {}", instruction.op_code, instruction.addr_mode)
                 }
@@ -558,6 +535,65 @@ impl Cpu {
         self.bus.write(value, self.x);
         step
     }
+    
+    fn sty(&mut self, addr_mode: AddrMode) -> Step {
+        let (value, step) = match addr_mode {
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1) as u16;
+                (addr, Step::next(2, 4))
+            }
+            AddrMode::ZpX => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let addr = addr.wrapping_add(self.x) as u16;
+                (addr, Step::next(2, 4))
+            }
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                (addr, Step::next(3, 4))
+            }
+            _ => panic!("unimplemented: lda {addr_mode:?}")
+        };
+        
+        self.bus.write(value, self.y);
+        step
+    }
+    
+    fn tax(&mut self) -> Step {
+        self.x = self.acc;
+        self.set_zero(self.x);
+        self.set_negative(self.x);
+        Step::next(1, 2)
+    }
+    
+    fn tay(&mut self) -> Step {
+        self.y = self.acc;
+        self.set_zero(self.y);
+        self.set_negative(self.y);
+        Step::next(1, 2)
+    }
+    
+    fn tsx(&mut self) -> Step {
+        self.x = self.sp;
+        self.set_zero(self.x);
+        self.set_negative(self.x);
+        Step::next(1, 2)
+    }
+    
+    fn txa(&mut self) -> Step {
+        self.acc = self.x;
+        self.set_zero(self.acc);
+        self.set_negative(self.acc);
+        Step::next(1, 2)
+    }
+    
+    fn tya(&mut self) -> Step {
+        self.acc = self.y;
+        self.set_zero(self.acc);
+        self.set_negative(self.acc);
+        
+        Step::next(1, 2)
+    }
+    
     
     fn value_zp(&self, addr: u8) -> u8 {
         self.value_zp_offset(addr, 0)
