@@ -69,6 +69,7 @@ name = "bunNES"
 version = "0.1.0"
 dependencies = [
  "bit",
+ "bitflags",
  "rand",
 ]
 
