@@ -11,6 +11,8 @@ pub const HEIGHT: u32 = 240;
 
 pub type RenderImage = Vec<u8>;
 
+type ExtraStep = u8;
+
 #[derive(Eq, PartialEq, Debug)]
 pub struct ProcessorStatus {
     /// [0] carry
@@ -399,6 +401,20 @@ impl Cpu {
 
     fn lda(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            }
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.zp(addr);
+                (value, Step::next(2, 3))
+            }
+            AddrMode::ZpX => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.zp_x(addr, self.x);
+                (value, Step::next(2, 4))
+            }
             AddrMode::Absolute => {
                 let addr = self.bus.read_16(self.pc + 1);
                 let value = self.bus.read_8(addr);
@@ -406,13 +422,25 @@ impl Cpu {
             }
             AddrMode::AbsoluteX => {
                 let addr = self.bus.read_16(self.pc + 1);
-                let (addr, extra_step) = self.add_absolute_x(addr);
+                let (addr, extra_step) = self.addr_absolute_with_offset(addr, self.x as u16);
                 let value = self.bus.read_8(addr);
                 (value, Step::next(3, 4 + extra_step))
             }
-            AddrMode::Immediate => {
-                let value = self.bus.read_8(self.pc + 1);
-                (value, Step::next(2, 2))
+            AddrMode::AbsoluteY => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(addr, self.y as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            AddrMode::IndirectX => {
+                let addr = self.addr_indirect_x();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 6))
+            }
+            AddrMode::IndirectY => {
+                let (addr, extra_step) = self.indirect_y();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 5 + extra_step))
             }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
@@ -448,12 +476,40 @@ impl Cpu {
         self.bus.write(value, self.x);
         step
     }
-
-
-    /// returns address with x offset and if it needed an extra cycle
-    fn add_absolute_x(&self, addr: u16) -> (u16, u8) {
+    
+    fn zp(&self, addr: u8) -> u8 {
+        self.zp_x(addr, 0)
+    }
+    
+    fn zp_x(&self, addr: u8, x: u8) -> u8 {
+        let addr = addr.wrapping_add(x);
+        self.bus.ram[addr as usize]
+    }
+    
+    fn zp_y(&self, addr: u8, y: u8) -> u8 {
+        unimplemented!()
+    }
+    
+    /// returns address with offset and if it needed an extra cycle on page boundary cross
+    fn addr_absolute_with_offset(&self, addr: u16, offset: u16) -> (u16, ExtraStep) {
         let page_index = (addr & 0xFF00) / 256;
-        let addr = addr.wrapping_add(self.x as u16);
+        let addr = addr.wrapping_add(offset);
+        let extra_step = if page_index != ((addr & 0xFF00) / 256) { 1 } else { 0 };
+        (addr, extra_step)
+    }
+    
+    fn addr_indirect_x(&mut self) -> u16 {
+        let addr = self.bus.read_8(self.pc + 1);
+        let addr = addr.wrapping_add(self.x);
+        self.bus.read_16(addr as u16)
+        
+    }
+    
+    fn indirect_y(&mut self) -> (u16, ExtraStep) {
+        let param = self.bus.read_16(self.pc + 1);
+        let fetched_addr = self.bus.read_16(param);
+        let addr = fetched_addr + self.y as u16;
+        let page_index = (addr & 0xFF00) / 256;
         let extra_step = if page_index != ((addr & 0xFF00) / 256) { 1 } else { 0 };
         (addr, extra_step)
     }
