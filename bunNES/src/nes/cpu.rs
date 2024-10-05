@@ -215,7 +215,7 @@ impl Cpu {
     }
 
     fn set_negative(&mut self, value: u8) {
-        self.ps.set_negative(value.bit(7) == true);
+        self.ps.set_negative(value.bit(7));
     }
     
     fn set_overflow(&mut self, value: u8, old_value: u8) {
@@ -612,7 +612,10 @@ impl Cpu {
     }
     
     fn iny(&mut self) -> Step {
-        unimplemented!()
+        self.y = self.y.wrapping_add(1);
+        self.set_zero(self.y);
+        self.set_negative(self.y);
+        Step::next(1, 2)
     }
     
     fn jmp(&mut self, addr_mode: AddrMode) -> Step {
@@ -748,7 +751,44 @@ impl Cpu {
     }
     
     fn lsr(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        if addr_mode == AddrMode::Accumulator {
+            self.ps.set_carry(self.acc.bit(0));
+            self.acc >>= 1;
+            
+            self.set_zero(self.acc);
+            self.set_negative(self.acc);
+            Step::next(1, 2)
+        } else {
+            let (addr, step) = match addr_mode {
+                AddrMode::Zp => {
+                    let addr = self.bus.read_8(self.pc + 1) as u16;
+                    (addr, Step::next(2, 5))
+                }
+                AddrMode::ZpX => {
+                    let addr = self.bus.read_8(self.pc + 1);
+                    let addr = addr.wrapping_add(self.x) as u16;
+                    (addr, Step::next(2, 6))
+                }
+                AddrMode::Absolute => {
+                    let addr = self.bus.read_16(self.pc + 1);
+                    (addr, Step::next(2, 6))
+                }
+                AddrMode::AbsoluteX => {
+                    let arg = self.bus.read_16(self.pc + 1);
+                    let (addr, _) = self.addr_absolute_with_offset(arg, self.x as u16);
+                    (addr, Step::next(2, 7))
+                }
+                _ => panic!("unknown addr_mode: lsr {addr_mode:?}")
+            };
+            
+            let mut value = self.bus.read_8(addr);
+            self.ps.set_carry(value.bit(0));
+            value >>= 1;
+            self.set_negative(value);
+            self.bus.write(addr, value);
+            
+            step
+        }
     }
     
     fn nop(&self) -> Step {
@@ -784,11 +824,93 @@ impl Cpu {
     }
     
     fn rol(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        if addr_mode == AddrMode::Accumulator {
+            let carry = self.ps.carry();
+            self.ps.set_carry(self.acc.bit(7));
+            self.acc <<= 1;
+            self.acc.set_bit(0, carry);
+            self.set_zero(self.acc);
+            self.set_negative(self.acc);
+            Step::next(1, 2)
+        } else {
+            let (addr, step) = match addr_mode {
+                AddrMode::Zp => {
+                    let addr = self.bus.read_8(self.pc + 1) as u16;
+                    (addr, Step::next(2, 5))
+                }
+                AddrMode::ZpX => {
+                    let addr = self.bus.read_8(self.pc + 1);
+                    let addr = addr.wrapping_add(self.x) as u16;
+                    (addr, Step::next(2, 6))
+                }
+                AddrMode::Absolute => {
+                    let addr = self.bus.read_16(self.pc + 1);
+                    (addr, Step::next(3, 6))
+                }
+                AddrMode::AbsoluteX => {
+                    let arg = self.bus.read_16(self.pc + 1);
+                    let (addr, _) = self.addr_absolute_with_offset(arg, self.x as u16);
+                    (addr, Step::next(3, 7))
+                }
+                _ => panic!("unknown addr_mode: rol {addr_mode:?}")
+            };
+            
+            let mut value = self.bus.read_8(addr);
+            let carry = self.ps.carry();
+            self.ps.set_carry(value.bit(7));
+            value <<= 1;
+            value.set_bit(0, carry);
+            self.set_zero(value);
+            self.set_negative(value);
+            self.bus.write(addr, value);
+            
+            step
+        }
     }
     
     fn ror(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        if addr_mode == AddrMode::Accumulator {
+            let carry = self.ps.carry();
+            self.ps.set_carry(self.acc.bit(0));
+            self.acc >>= 1;
+            self.acc.set_bit(7, carry);
+            self.set_zero(self.acc);
+            self.set_negative(self.acc);
+            Step::next(1, 2)
+        } else {
+            let (addr, step) = match addr_mode {
+                AddrMode::Zp => {
+                    let addr = self.bus.read_8(self.pc + 1) as u16;
+                    (addr, Step::next(2, 5))
+                }
+                AddrMode::ZpX => {
+                    let addr = self.bus.read_8(self.pc + 1);
+                    let addr = addr.wrapping_add(self.x) as u16;
+                    (addr, Step::next(2, 6))
+                }
+                AddrMode::Absolute => {
+                    let addr = self.bus.read_16(self.pc + 1);
+                    (addr, Step::next(3, 6))
+                }
+                AddrMode::AbsoluteX => {
+                    let arg = self.bus.read_16(self.pc + 1);
+                    let (addr, _) = self.addr_absolute_with_offset(arg, self.x as u16);
+                    (addr, Step::next(3, 7))
+                }
+                _ => panic!("unknown addr_mode: rol {addr_mode:?}")
+            };
+            
+            let mut value = self.bus.read_8(addr);
+            let carry = self.ps.carry();
+            self.ps.set_carry(value.bit(0));
+            value >>= 1;
+            value.set_bit(7, carry);
+            self.set_zero(value);
+            self.set_negative(value);
+            self.bus.write(addr, value);
+            
+            step
+        }
     }
     
     fn rti(&mut self, ) -> Step {

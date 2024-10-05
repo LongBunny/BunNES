@@ -726,6 +726,8 @@ mod rol {
         let code: Vec<u8> = vec![
             instruction(OpCode::Rol, AddrMode::Zp),
             1,
+            instruction(OpCode::Rol, AddrMode::Zp),
+            1,
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[1] = 0b0000_0001;
@@ -742,6 +744,8 @@ mod rol {
     #[test]
     fn rol_zero_page_x() {
         let code: Vec<u8> = vec![
+            instruction(OpCode::Rol, AddrMode::ZpX),
+            1,
             instruction(OpCode::Rol, AddrMode::ZpX),
             1,
         ];
@@ -762,6 +766,8 @@ mod rol {
     fn rol_absolute() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Rol, AddrMode::Absolute),
+            0x00, 0x01,
+            instruction(OpCode::Rol, AddrMode::Absolute),
             0x00, 0x01
         ];
         let mut cpu = get_cpu(code);
@@ -779,6 +785,8 @@ mod rol {
     #[test]
     fn rol_absolute_x() {
         let code: Vec<u8> = vec![
+            instruction(OpCode::Rol, AddrMode::AbsoluteX),
+            0x00, 0x01,
             instruction(OpCode::Rol, AddrMode::AbsoluteX),
             0x00, 0x01
         ];
@@ -852,6 +860,8 @@ mod ror {
         let code: Vec<u8> = vec![
             instruction(OpCode::Ror, AddrMode::Zp),
             1,
+            instruction(OpCode::Ror, AddrMode::Zp),
+            1,
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[1] = 0b0000_0010;
@@ -868,6 +878,8 @@ mod ror {
     #[test]
     fn ror_zero_page_x() {
         let code: Vec<u8> = vec![
+            instruction(OpCode::Ror, AddrMode::ZpX),
+            1,
             instruction(OpCode::Ror, AddrMode::ZpX),
             1,
         ];
@@ -888,7 +900,9 @@ mod ror {
     fn ror_absolute() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Ror, AddrMode::Absolute),
-            0x00, 0x01
+            0x00, 0x01,
+            instruction(OpCode::Ror, AddrMode::Absolute),
+            0x00, 0x01,
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[0x0100] = 0b0000_0010;
@@ -906,7 +920,9 @@ mod ror {
     fn ror_absolute_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Ror, AddrMode::AbsoluteX),
-            0x00, 0x01
+            0x00, 0x01,
+            instruction(OpCode::Ror, AddrMode::AbsoluteX),
+            0x00, 0x01,
         ];
         let mut cpu = get_cpu(code);
         cpu.x = 5;
