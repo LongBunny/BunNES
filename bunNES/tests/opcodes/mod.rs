@@ -11,16 +11,7 @@ mod helpers {
     use bunNES::nes::cpu::{Cpu, ProcessorStatus};
     use bunNES::nes::opcodes::{op_code_from_instruction, AddrMode, Instruction, OpCode};
     use bunNES::nes::rom::Cartridge;
-    
-    #[derive(Eq, PartialEq)]
-    struct Registers {
-        acc: u8,
-        x: u8,
-        y: u8,
-        ps: ProcessorStatus
-    }
-    
-    
+      
     pub fn get_cpu(mut code: Vec<u8>) -> Cpu {
         code.resize(0x4000, 0);
         // interrupt vector
@@ -51,9 +42,5 @@ mod helpers {
         } else {
             panic!("Invalid instruction: {} {}", op_code, addr_mode)
         }
-    }
-    
-    pub fn registers(cpu: &Cpu) {
-        
     }
 }

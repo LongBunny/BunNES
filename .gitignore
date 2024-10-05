@@ -1,11 +1,7 @@
+/.idea
 /target
 /vasm
 /roms
 /src_old
-/.idea/.name
 /a.out
-/.idea/git_toolbox_prj.xml
-/.idea/modules.xml
-/.idea/nes_emu.iml
 /tools/temp.txt
-/.idea/vcs.xml

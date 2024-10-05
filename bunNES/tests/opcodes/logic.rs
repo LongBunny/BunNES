@@ -2,6 +2,7 @@ use bunNES::nes::opcodes::{AddrMode, OpCode};
 use crate::opcodes::helpers::{get_cpu, instruction};
 use bunNES::nes::cpu::Cpu;
 
+// 8/8
 #[cfg(test)]
 mod and {
     use super::*;
@@ -184,6 +185,7 @@ mod and {
     }
 }
 
+// 2/2
 #[cfg(test)]
 mod bit {
     use super::*;
@@ -236,6 +238,7 @@ mod bit {
     }
 }
 
+// 8/8
 #[cfg(test)]
 mod cmp {
     use super::*;
@@ -419,6 +422,7 @@ mod cmp {
 
 }
 
+// 3/3
 #[cfg(test)]
 mod cpx {
     use super::*;
@@ -495,6 +499,7 @@ mod cpx {
 
 }
 
+// 3/3
 #[cfg(test)]
 mod cpy {
     use super::*;
@@ -571,6 +576,7 @@ mod cpy {
 
 }
 
+// 8/8
 #[cfg(test)]
 mod eor {
     use super::*;
@@ -791,6 +797,7 @@ mod eor {
     }
 }
 
+// 8/8
 #[cfg(test)]
 mod ora {
     use super::*;

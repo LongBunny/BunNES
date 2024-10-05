@@ -221,7 +221,7 @@ pub static OP_CODES: [(Option<Instruction>); 256] = [
     Some(Instruction { op_code: Ora, addr_mode: ZpX, size: 2 }), // 0x15
     Some(Instruction { op_code: Asl, addr_mode: ZpX, size: 2 }), // 0x16
     None, // 0x17
-    Some(Instruction { op_code: Clc, addr_mode: Immediate, size: 2 }), // 0x18
+    Some(Instruction { op_code: Clc, addr_mode: Implicit, size: 1 }), // 0x18
     Some(Instruction { op_code: Ora, addr_mode: AbsoluteY, size: 3 }), // 0x19
     Some(Instruction { op_code: Inc, addr_mode: Accumulator, size: 1 }), // 0x1a
     None, // 0x1b

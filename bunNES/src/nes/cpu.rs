@@ -24,6 +24,12 @@ pub struct ProcessorStatus {
     reg: u8,
 }
 
+impl Default for ProcessorStatus {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProcessorStatus {
     pub fn new() -> ProcessorStatus {
         ProcessorStatus {
@@ -133,7 +139,7 @@ impl Cpu {
             acc: 0,
             x: 0,
             y: 0,
-            ps: ProcessorStatus::new(),
+            ps: ProcessorStatus::default(),
 
             bus: Bus::new(cartridge),
 

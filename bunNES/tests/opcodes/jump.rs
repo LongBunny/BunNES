@@ -2,6 +2,7 @@ use bunNES::nes::opcodes::{AddrMode, OpCode};
 use crate::opcodes::helpers::{get_cpu, instruction};
 
 
+// 1/1
 #[cfg(test)]
 mod bcc {
     use super::*;
@@ -26,6 +27,7 @@ mod bcc {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod bcs {
     use super::*;
@@ -50,6 +52,7 @@ mod bcs {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod beq {
     use super::*;
@@ -74,6 +77,7 @@ mod beq {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod bmi {
     use super::*;
@@ -98,6 +102,7 @@ mod bmi {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod bne {
     use super::*;
@@ -122,6 +127,7 @@ mod bne {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod bpl {
     use super::*;
@@ -146,6 +152,7 @@ mod bpl {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod bvc {
     use super::*;
@@ -170,6 +177,7 @@ mod bvc {
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod bvs {
     use super::*;
@@ -194,23 +202,46 @@ mod bvs {
     }
 }
 
+// 2/2
 #[cfg(test)]
 mod jmp {
     use super::*;
 
     #[test]
-    fn jmp() {
+    fn jmp_absolute() {
         let code: Vec<u8> = vec![
-            instruction(OpCode::Bvs, AddrMode::Relative),
+            instruction(OpCode::Bvs, AddrMode::Absolute),
+            0x01, 0x00,
+        ];
+        let mut cpu = get_cpu(code);
+        let initial_pc = cpu.pc;
+        while !cpu.step() {};
+        assert_eq!(cpu.pc, initial_pc + 0x0100 + 0x01);
+    }
+    
+    #[test]
+    fn jmp_indirect() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Bvs, AddrMode::Indirect),
             0x10,
         ];
         let mut cpu = get_cpu(code);
         let initial_pc = cpu.pc;
         while !cpu.step() {};
         assert_eq!(cpu.pc, initial_pc + 0x10 + 0x01);
+        
+        // note: 
+        // An original 6502 has does not correctly fetch the target address
+        // if the indirect vector falls on a page boundary
+        // (e.g. $xxFF where xx is any value from $00 to $FF).
+        // In this case fetches the LSB from $xxFF as expected
+        // but takes the MSB from $xx00.
+        // This is fixed in some later chips like the 65SC02
+        // so for compatibility always ensure the indirect vector is not at the end of the page.
     }
 }
 
+// 1/1
 #[cfg(test)]
 mod jsr {
     use super::*;
@@ -224,7 +255,45 @@ mod jsr {
         let mut cpu = get_cpu(code);
         while !cpu.step() {};
         assert_eq!(cpu.pc, 0x0100);
-        // TODO: check stack
+        todo!("jsr: check stack")
+    }
+}
+
+// 1/1
+#[cfg(test)]
+mod rti {
+    use super::*;
+
+    #[test]
+    fn rti() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Rti, AddrMode::Implicit),
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x01FF] = 0b1111_1111;
+        cpu.bus.ram[0x01FF - 1] = 0x01;
+        cpu.bus.ram[0x01FF - 2] = 0x02;
+        while !cpu.step() {};
+        assert_eq!(cpu.ps.get_reg(), 0b1111_1111);
+        assert_eq!(cpu.pc, 0x0201);
+    }
+}
+
+// 1/1
+#[cfg(test)]
+mod rts {
+    use super::*;
+
+    #[test]
+    fn rts() {
+        let code: Vec<u8> = vec![
+            instruction(OpCode::Rts, AddrMode::Implicit),
+        ];
+        let mut cpu = get_cpu(code);
+        cpu.bus.ram[0x01FF - 0] = 0x01;
+        cpu.bus.ram[0x01FF - 1] = 0x02;
+        while !cpu.step() {};
+        assert_eq!(cpu.pc, 0x0201);
     }
 }
 
