@@ -229,28 +229,19 @@ impl Cpu {
         let step: Step = if let Some(instruction) = instruction {
             let addr_mode = instruction.addr_mode;
             match instruction.op_code {
-                OpCode::Cld => self.cld(),
-                OpCode::Cpx => self.cpx(addr_mode),
                 OpCode::Bne => self.bne(),
                 OpCode::Bpl => self.bpl(),
-                OpCode::Txs => self.txs(),
-                OpCode::Inx => self.inx(),
-                OpCode::Dex => self.dex(),
-                OpCode::Dey => self.dey(),
-                OpCode::Ldx => self.ldx(addr_mode),
-                OpCode::Ldy => self.ldy(addr_mode),
-                OpCode::Lda => self.lda(addr_mode),
-                OpCode::Sta => self.sta(addr_mode),
-                OpCode::Stx => self.stx(addr_mode),
-                OpCode::Sty => self.sty(addr_mode),
-                OpCode::Tax => self.tax(),
-                OpCode::Tay => self.tay(),
-                OpCode::Tsx => self.tsx(),
-                OpCode::Txa => self.txa(),
-                OpCode::Tya => self.tya(),
                 OpCode::Clc => self.clc(),
+                OpCode::Cld => self.cld(),
                 OpCode::Cli => self.cli(),
                 OpCode::Clv => self.clv(),
+                OpCode::Cpx => self.cpx(addr_mode),
+                OpCode::Dex => self.dex(),
+                OpCode::Dey => self.dey(),
+                OpCode::Inx => self.inx(),
+                OpCode::Lda => self.lda(addr_mode),
+                OpCode::Ldx => self.ldx(addr_mode),
+                OpCode::Ldy => self.ldy(addr_mode),
                 OpCode::Nop => self.nop(),
                 OpCode::Pha => self.pha(),
                 OpCode::Php => self.php(),
@@ -259,6 +250,15 @@ impl Cpu {
                 OpCode::Sec => self.sec(),
                 OpCode::Sed => self.sed(),
                 OpCode::Sei => self.sei(),
+                OpCode::Sta => self.sta(addr_mode),
+                OpCode::Stx => self.stx(addr_mode),
+                OpCode::Sty => self.sty(addr_mode),
+                OpCode::Tax => self.tax(),
+                OpCode::Tay => self.tay(),
+                OpCode::Tsx => self.tsx(),
+                OpCode::Txs => self.txs(),
+                OpCode::Txa => self.txa(),
+                OpCode::Tya => self.tya(),
                 _ => {
                     unimplemented!("opcode is not implemented yet: {} {}", instruction.op_code, instruction.addr_mode)
                 }
@@ -279,6 +279,7 @@ impl Cpu {
         (instruction, byte_code)
     }
     
+    // instructions
     fn clc(&mut self) -> Step {
         self.ps.set_carry(false);
         Step::next(1, 2)
@@ -336,7 +337,6 @@ impl Cpu {
         self.ps.set_irqb(true);
         Step::next(1, 2)
     }
-    
 
     fn cld(&mut self) -> Step {
         self.ps.set_decimal(false);
@@ -658,6 +658,7 @@ impl Cpu {
     }
     
     
+    // helper
     fn value_zp(&self, addr: u8) -> u8 {
         self.value_zp_offset(addr, 0)
     }
