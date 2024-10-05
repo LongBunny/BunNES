@@ -473,7 +473,26 @@ impl Cpu {
     }
     
     fn bit(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        let (value, step) = match addr_mode {
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let value = self.bus.read_8(addr as u16);
+                (value, Step::next(2, 3))
+            },
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4))
+            }
+            _ => panic!("unknown addr_mode: bit {addr_mode:?}")
+        };
+        
+        let result = self.acc & value;
+        self.set_zero(result);
+        self.ps.set_overflow(value.bit(6));
+        self.ps.set_negative(value.bit(7));
+        
+        step
     }
     
     fn bmi(&mut self, ) -> Step {

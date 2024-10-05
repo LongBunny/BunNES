@@ -214,7 +214,8 @@ mod bit {
         assert_eq!(cpu.ps.overflow(), true);
         assert_eq!(cpu.ps.negative(), true);
     }
-
+    
+    #[test]
     fn bit_absolute() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Bit, AddrMode::Absolute),
