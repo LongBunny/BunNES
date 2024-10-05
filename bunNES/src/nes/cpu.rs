@@ -280,8 +280,43 @@ impl Cpu {
     }
     
     // instructions
+    fn bne(&mut self) -> Step {
+        if self.ps.zero() == false {
+            let offset: i8 = unsafe {
+                std::mem::transmute(self.bus.read_8(self.pc + 1))
+            };
+            
+            let mut addr = self.pc as i32;
+            addr += offset as i32;
+            self.pc = addr as u16;
+        }
+        // todo: cycles can be 2, 3 or 4
+        // https://www.nesdev.org/obelisk-6502-guide/reference.html#BNE
+        Step::next(2, 2)
+    }
+    
+    fn bpl(&mut self) -> Step {
+        if self.ps.negative() == false {
+            let offset: i8 = unsafe {
+                std::mem::transmute(self.bus.read_8(self.pc + 1))
+            };
+            
+            let mut addr = self.pc as i32;
+            addr += offset as i32;
+            self.pc = addr as u16;
+        }
+        // todo: cycles can be 2, 3 or 4
+        // https://www.nesdev.org/obelisk-6502-guide/reference.html#BPL
+        Step::next(2, 2)
+    }
+    
     fn clc(&mut self) -> Step {
         self.ps.set_carry(false);
+        Step::next(1, 2)
+    }
+    
+    fn cld(&mut self) -> Step {
+        self.ps.set_decimal(false);
         Step::next(1, 2)
     }
     
@@ -295,80 +330,6 @@ impl Cpu {
         Step::next(1, 2)
     }
     
-    fn nop(&self) -> Step {
-        Step::next(1, 2)
-    }
-    
-    fn pha(&mut self) -> Step {
-        unimplemented!();
-        Step::next(1, 3)
-    }
-    
-    fn php(&mut self) -> Step {
-        unimplemented!();
-        Step::next(1, 3)
-    }
-    
-    fn pla(&mut self) -> Step {
-        unimplemented!();
-        // self.set_zero(value);
-        // self.set_negative(value);
-        Step::next(1, 4)
-    }
-    
-    fn plp(&mut self) -> Step {
-        unimplemented!();
-        // self.set_zero(value);
-        // self.set_negative(value);
-        Step::next(1, 4)
-    }
-    
-    fn sec(&mut self) -> Step {
-        self.ps.set_carry(true);
-        Step::next(1, 2)
-    }
-    
-    fn sed(&mut self) -> Step {
-        self.ps.set_decimal(true);
-        Step::next(1, 2)
-    }
-    
-    fn sei(&mut self) -> Step {
-        self.ps.set_irqb(true);
-        Step::next(1, 2)
-    }
-
-    fn cld(&mut self) -> Step {
-        self.ps.set_decimal(false);
-        Step::next(1, 2)
-    }
-
-    fn txs(&mut self) -> Step {
-        self.sp = self.x;
-        Step::next(1, 2)
-    }
-
-    fn inx(&mut self) -> Step {
-        self.x = self.x.wrapping_add(1);
-        self.set_zero(self.x);
-        self.set_negative(self.x);
-        Step::next(1, 2)
-    }
-
-    fn dex(&mut self) -> Step {
-        self.x = self.x.wrapping_sub(1);
-        self.set_zero(self.x);
-        self.set_negative(self.x);
-        Step::next(1, 2)
-    }
-
-    fn dey(&mut self) -> Step {
-        self.y = self.y.wrapping_sub(1);
-        self.set_zero(self.y);
-        self.set_negative(self.y);
-        Step::next(1, 2)
-    }
-
     fn cpx(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Immediate => {
@@ -382,35 +343,26 @@ impl Cpu {
         self.set_negative(value);
         step
     }
-
-    fn bne(&mut self) -> Step {
-        if self.ps.zero() == false {
-            let offset: i8 = unsafe {
-                std::mem::transmute(self.bus.read_8(self.pc + 1))
-            };
-
-            let mut addr = self.pc as i32;
-            addr += offset as i32;
-            self.pc = addr as u16;
-        }
-        // todo: cycles can be 2, 3 or 4
-        // https://www.nesdev.org/obelisk-6502-guide/reference.html#BNE
-        Step::next(2, 2)
+    
+    fn dex(&mut self) -> Step {
+        self.x = self.x.wrapping_sub(1);
+        self.set_zero(self.x);
+        self.set_negative(self.x);
+        Step::next(1, 2)
     }
-
-    fn bpl(&mut self) -> Step {
-        if self.ps.negative() == false {
-            let offset: i8 = unsafe {
-                std::mem::transmute(self.bus.read_8(self.pc + 1))
-            };
-
-            let mut addr = self.pc as i32;
-            addr += offset as i32;
-            self.pc = addr as u16;
-        }
-        // todo: cycles can be 2, 3 or 4
-        // https://www.nesdev.org/obelisk-6502-guide/reference.html#BPL
-        Step::next(2, 2)
+    
+    fn dey(&mut self) -> Step {
+        self.y = self.y.wrapping_sub(1);
+        self.set_zero(self.y);
+        self.set_negative(self.y);
+        Step::next(1, 2)
+    }
+    
+    fn inx(&mut self) -> Step {
+        self.x = self.x.wrapping_add(1);
+        self.set_zero(self.x);
+        self.set_negative(self.x);
+        Step::next(1, 2)
     }
     
     fn lda(&mut self, addr_mode: AddrMode) -> Step {
@@ -464,7 +416,7 @@ impl Cpu {
         self.set_negative(value);
         step
     }
-
+    
     fn ldx(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Immediate => {
@@ -500,7 +452,7 @@ impl Cpu {
         self.set_negative(value);
         step
     }
-
+    
     fn ldy(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Immediate => {
@@ -536,7 +488,50 @@ impl Cpu {
         self.set_negative(value);
         step
     }
-
+    
+    fn nop(&self) -> Step {
+        Step::next(1, 2)
+    }
+    
+    fn pha(&mut self) -> Step {
+        unimplemented!();
+        Step::next(1, 3)
+    }
+    
+    fn php(&mut self) -> Step {
+        unimplemented!();
+        Step::next(1, 3)
+    }
+    
+    fn pla(&mut self) -> Step {
+        unimplemented!();
+        // self.set_zero(value);
+        // self.set_negative(value);
+        Step::next(1, 4)
+    }
+    
+    fn plp(&mut self) -> Step {
+        unimplemented!();
+        // self.set_zero(value);
+        // self.set_negative(value);
+        Step::next(1, 4)
+    }
+    
+    fn sec(&mut self) -> Step {
+        self.ps.set_carry(true);
+        Step::next(1, 2)
+    }
+    
+    fn sed(&mut self) -> Step {
+        self.ps.set_decimal(true);
+        Step::next(1, 2)
+    }
+    
+    fn sei(&mut self) -> Step {
+        self.ps.set_irqb(true);
+        Step::next(1, 2)
+    }
+    
     fn sta(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Zp => {
@@ -572,11 +567,11 @@ impl Cpu {
             }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
-
+        
         self.bus.write(value, self.acc);
         step
     }
-
+    
     fn stx(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Zp => {
@@ -594,7 +589,7 @@ impl Cpu {
             }
             _ => panic!("unimplemented: lda {addr_mode:?}")
         };
-
+        
         self.bus.write(value, self.x);
         step
     }
@@ -646,6 +641,11 @@ impl Cpu {
         self.acc = self.x;
         self.set_zero(self.acc);
         self.set_negative(self.acc);
+        Step::next(1, 2)
+    }
+    
+    fn txs(&mut self) -> Step {
+        self.sp = self.x;
         Step::next(1, 2)
     }
     
