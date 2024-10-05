@@ -229,24 +229,50 @@ impl Cpu {
         let step: Step = if let Some(instruction) = instruction {
             let addr_mode = instruction.addr_mode;
             match instruction.op_code {
+                OpCode::Adc => self.adc(addr_mode),
+                OpCode::And => self.and(addr_mode),
+                OpCode::Asl => self.asl(addr_mode),
+                OpCode::Bcc => self.bcc(),
+                OpCode::Bcs => self.bcs(),
+                OpCode::Beq => self.beq(),
+                OpCode::Bit => self.bit(addr_mode),
+                OpCode::Bmi => self.bmi(),
                 OpCode::Bne => self.bne(),
                 OpCode::Bpl => self.bpl(),
+                OpCode::Brk => self.brk(),
+                OpCode::Bvc => self.bvc(),
+                OpCode::Bvs => self.bvs(),
                 OpCode::Clc => self.clc(),
                 OpCode::Cld => self.cld(),
                 OpCode::Cli => self.cli(),
                 OpCode::Clv => self.clv(),
+                OpCode::Cmp => self.cmp(addr_mode),
                 OpCode::Cpx => self.cpx(addr_mode),
+                OpCode::Cpy => self.cpy(addr_mode),
+                OpCode::Dec => self.dec(addr_mode),
                 OpCode::Dex => self.dex(),
                 OpCode::Dey => self.dey(),
+                OpCode::Eor => self.eor(addr_mode),
+                OpCode::Inc => self.inc(addr_mode),
                 OpCode::Inx => self.inx(),
+                OpCode::Iny => self.iny(),
+                OpCode::Jmp => self.jmp(addr_mode),
+                OpCode::Jsr => self.jsr(),
                 OpCode::Lda => self.lda(addr_mode),
                 OpCode::Ldx => self.ldx(addr_mode),
                 OpCode::Ldy => self.ldy(addr_mode),
+                OpCode::Lsr => self.lsr(addr_mode),
                 OpCode::Nop => self.nop(),
+                OpCode::Ora => self.ora(addr_mode),
                 OpCode::Pha => self.pha(),
                 OpCode::Php => self.php(),
                 OpCode::Pla => self.pla(),
                 OpCode::Plp => self.plp(),
+                OpCode::Rol => self.rol(addr_mode),
+                OpCode::Ror => self.ror(addr_mode),
+                OpCode::Rti => self.rti(),
+                OpCode::Rts => self.rts(),
+                OpCode::Sbc => self.sbc(addr_mode),
                 OpCode::Sec => self.sec(),
                 OpCode::Sed => self.sed(),
                 OpCode::Sei => self.sei(),
@@ -259,9 +285,6 @@ impl Cpu {
                 OpCode::Txs => self.txs(),
                 OpCode::Txa => self.txa(),
                 OpCode::Tya => self.tya(),
-                _ => {
-                    unimplemented!("opcode is not implemented yet: {} {}", instruction.op_code, instruction.addr_mode)
-                }
             }
         } else {
             panic!("unknown instruction: {:#04X}: {:#04X}", self.pc, byte_code)
@@ -280,6 +303,39 @@ impl Cpu {
     }
     
     // instructions
+    
+    fn adc(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn and(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn asl(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn bcc(&mut self, ) -> Step {
+        unimplemented!()
+    }
+    
+    fn bcs(&mut self, ) -> Step {
+        unimplemented!()
+    }
+    
+    fn beq(&mut self, ) -> Step {
+        unimplemented!()
+    }
+    
+    fn bit(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn bmi(&mut self, ) -> Step {
+        unimplemented!()
+    }
+    
     fn bne(&mut self) -> Step {
         if self.ps.zero() == false {
             let offset: i8 = unsafe {
@@ -310,6 +366,18 @@ impl Cpu {
         Step::next(2, 2)
     }
     
+    fn brk(&mut self) -> Step {
+        unimplemented!()
+    }
+    
+    fn bvc(&mut self) -> Step {
+        unimplemented!()
+    }
+    
+    fn bvs(&mut self) -> Step {
+        unimplemented!()
+    }
+    
     fn clc(&mut self) -> Step {
         self.ps.set_carry(false);
         Step::next(1, 2)
@@ -330,6 +398,10 @@ impl Cpu {
         Step::next(1, 2)
     }
     
+    fn cmp(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
     fn cpx(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
             AddrMode::Immediate => {
@@ -342,6 +414,14 @@ impl Cpu {
         self.set_zero(value);
         self.set_negative(value);
         step
+    }
+    
+    fn cpy(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn dec(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
     }
     
     fn dex(&mut self) -> Step {
@@ -358,11 +438,31 @@ impl Cpu {
         Step::next(1, 2)
     }
     
+    fn eor(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn inc(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
     fn inx(&mut self) -> Step {
         self.x = self.x.wrapping_add(1);
         self.set_zero(self.x);
         self.set_negative(self.x);
         Step::next(1, 2)
+    }
+    
+    fn iny(&mut self) -> Step {
+        unimplemented!()
+    }
+    
+    fn jmp(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn jsr(&mut self) -> Step {
+        unimplemented!()
     }
     
     fn lda(&mut self, addr_mode: AddrMode) -> Step {
@@ -489,8 +589,16 @@ impl Cpu {
         step
     }
     
+    fn lsr(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
     fn nop(&self) -> Step {
         Step::next(1, 2)
+    }
+    
+    fn ora(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
     }
     
     fn pha(&mut self) -> Step {
@@ -516,6 +624,27 @@ impl Cpu {
         // self.set_negative(value);
         Step::next(1, 4)
     }
+    
+    fn rol(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn ror(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
+    fn rti(&mut self, ) -> Step {
+        unimplemented!()
+    }
+    
+    fn rts(&mut self, ) -> Step {
+        unimplemented!()
+    }
+    
+    fn sbc(&mut self, addr_mode: AddrMode) -> Step {
+        unimplemented!()
+    }
+    
     
     fn sec(&mut self) -> Step {
         self.ps.set_carry(true);
