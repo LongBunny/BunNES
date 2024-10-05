@@ -126,7 +126,7 @@ mod adc {
     fn adc_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Adc, AddrMode::IndirectX),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -142,7 +142,7 @@ mod adc {
     fn adc_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Adc, AddrMode::IndirectY),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -1069,7 +1069,7 @@ mod sbc {
     fn sbc_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Sbc, AddrMode::IndirectX),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.ps.set_carry(true);
@@ -1086,7 +1086,7 @@ mod sbc {
     fn sbc_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Sbc, AddrMode::IndirectY),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.ps.set_carry(true);

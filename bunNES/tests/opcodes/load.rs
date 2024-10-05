@@ -107,7 +107,7 @@ mod lda {
     fn lda_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Lda, AddrMode::IndirectX),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.x = 4;
@@ -122,7 +122,7 @@ mod lda {
     fn lda_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Lda, AddrMode::IndirectY),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.y = 4;
@@ -385,7 +385,7 @@ mod sta {
     fn sta_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Sta, AddrMode::IndirectX),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
@@ -400,7 +400,7 @@ mod sta {
     fn sta_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Sta, AddrMode::IndirectY),
-            20
+            0x20
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 69;

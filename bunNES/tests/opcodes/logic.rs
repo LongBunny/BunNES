@@ -118,11 +118,11 @@ mod and {
     fn and_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::And, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::And, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::And, AddrMode::IndirectX),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.x = 4;
@@ -143,11 +143,11 @@ mod and {
     fn and_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::And, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::And, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::And, AddrMode::IndirectY),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.y = 4;
@@ -355,11 +355,11 @@ mod cmp {
     fn cmp_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Cmp, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Cmp, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Cmp, AddrMode::IndirectX),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -381,11 +381,11 @@ mod cmp {
     fn cmp_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Cmp, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Cmp, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Cmp, AddrMode::IndirectY),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -714,13 +714,13 @@ mod eor {
     fn eor_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Eor, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Eor, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Eor, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Eor, AddrMode::IndirectX),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -743,13 +743,13 @@ mod eor {
     fn eor_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Eor, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Eor, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Eor, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Eor, AddrMode::IndirectY),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -937,13 +937,13 @@ mod ora {
     fn ora_indirect_x() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Ora, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Ora, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Ora, AddrMode::IndirectX),
-            20,
+            0x20,
             instruction(OpCode::Ora, AddrMode::IndirectX),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
@@ -966,13 +966,13 @@ mod ora {
     fn ora_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Ora, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Ora, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Ora, AddrMode::IndirectY),
-            20,
+            0x20,
             instruction(OpCode::Ora, AddrMode::IndirectY),
-            20,
+            0x20,
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
