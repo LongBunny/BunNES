@@ -372,7 +372,44 @@ impl Cpu {
     }
     
     fn asl(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        if addr_mode == AddrMode::Accumulator {
+            self.ps.set_carry(self.acc.bit(7));
+            self.acc <<= 1;
+            
+            self.set_zero(self.acc);
+            self.set_negative(self.acc);
+            Step::next(1, 2)
+        } else {
+            let (addr, step) = match addr_mode {
+                AddrMode::Zp => {
+                    let addr = self.bus.read_8(self.pc + 1) as u16;
+                    (addr, Step::next(2, 5))
+                }
+                AddrMode::ZpX => {
+                    let addr = self.bus.read_8(self.pc + 1);
+                    let addr = addr.wrapping_add(self.x) as u16;
+                    (addr, Step::next(2, 6))
+                }
+                AddrMode::Absolute => {
+                    let addr = self.bus.read_16(self.pc + 1);
+                    (addr, Step::next(2, 6))
+                }
+                AddrMode::AbsoluteX => {
+                    let arg = self.bus.read_16(self.pc + 1);
+                    let (addr, _) = self.addr_absolute_with_offset(arg, self.x as u16);
+                    (addr, Step::next(2, 7))
+                }
+                _ => panic!("unknown addr_mode: asl {addr_mode:?}")
+            };
+            
+            let mut value = self.bus.read_8(addr);
+            self.ps.set_carry(value.bit(7));
+            value <<= 1;
+            self.set_negative(value);
+            self.bus.write(addr, value);
+            
+            step
+        }
     }
     
     fn bcc(&mut self, ) -> Step {
