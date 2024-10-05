@@ -229,7 +229,6 @@ impl Cpu {
         let step: Step = if let Some(instruction) = instruction {
             let addr_mode = instruction.addr_mode;
             match instruction.op_code {
-                OpCode::Sei => self.sei(),
                 OpCode::Cld => self.cld(),
                 OpCode::Cpx => self.cpx(addr_mode),
                 OpCode::Bne => self.bne(),
@@ -249,6 +248,17 @@ impl Cpu {
                 OpCode::Tsx => self.tsx(),
                 OpCode::Txa => self.txa(),
                 OpCode::Tya => self.tya(),
+                OpCode::Clc => self.clc(),
+                OpCode::Cli => self.cli(),
+                OpCode::Clv => self.clv(),
+                OpCode::Nop => self.nop(),
+                OpCode::Pha => self.pha(),
+                OpCode::Php => self.php(),
+                OpCode::Pla => self.pla(),
+                OpCode::Plp => self.plp(),
+                OpCode::Sec => self.sec(),
+                OpCode::Sed => self.sed(),
+                OpCode::Sei => self.sei(),
                 _ => {
                     unimplemented!("opcode is not implemented yet: {} {}", instruction.op_code, instruction.addr_mode)
                 }
@@ -268,12 +278,65 @@ impl Cpu {
         let instruction = OP_CODES[byte_code as usize];
         (instruction, byte_code)
     }
-
-    /// set interrupt disable
-    fn sei(&mut self) -> Step {
+    
+    fn clc(&mut self) -> Step {
+        self.ps.set_carry(false);
+        Step::next(1, 2)
+    }
+    
+    fn cli(&mut self) -> Step {
         self.ps.set_irqb(false);
         Step::next(1, 2)
     }
+    
+    fn clv(&mut self) -> Step {
+        self.ps.set_overflow(false);
+        Step::next(1, 2)
+    }
+    
+    fn nop(&self) -> Step {
+        Step::next(1, 2)
+    }
+    
+    fn pha(&mut self) -> Step {
+        unimplemented!();
+        Step::next(1, 3)
+    }
+    
+    fn php(&mut self) -> Step {
+        unimplemented!();
+        Step::next(1, 3)
+    }
+    
+    fn pla(&mut self) -> Step {
+        unimplemented!();
+        // self.set_zero(value);
+        // self.set_negative(value);
+        Step::next(1, 4)
+    }
+    
+    fn plp(&mut self) -> Step {
+        unimplemented!();
+        // self.set_zero(value);
+        // self.set_negative(value);
+        Step::next(1, 4)
+    }
+    
+    fn sec(&mut self) -> Step {
+        self.ps.set_carry(true);
+        Step::next(1, 2)
+    }
+    
+    fn sed(&mut self) -> Step {
+        self.ps.set_decimal(true);
+        Step::next(1, 2)
+    }
+    
+    fn sei(&mut self) -> Step {
+        self.ps.set_irqb(true);
+        Step::next(1, 2)
+    }
+    
 
     fn cld(&mut self) -> Step {
         self.ps.set_decimal(false);
