@@ -539,6 +539,15 @@ impl Cpu {
 
     fn stx(&mut self, addr_mode: AddrMode) -> Step {
         let (value, step) = match addr_mode {
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1) as u16;
+                (addr, Step::next(2, 4))
+            }
+            AddrMode::ZpY => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let addr = addr.wrapping_add(self.y) as u16;
+                (addr, Step::next(2, 4))
+            }
             AddrMode::Absolute => {
                 let addr = self.bus.read_16(self.pc + 1);
                 (addr, Step::next(3, 4))
