@@ -217,6 +217,11 @@ impl Cpu {
     fn set_negative(&mut self, value: u8) {
         self.ps.set_negative(value.bit(7) == true);
     }
+    
+    fn set_overflow(&mut self, value: u8, old_value: u8) {
+        let overflow = value.bit(7) != old_value.bit(7);
+        self.ps.set_overflow(overflow);
+    }
 
     pub fn step(&mut self) -> bool {
         if self.cycles_to_finish > 0 {
@@ -305,7 +310,61 @@ impl Cpu {
     // instructions
     
     fn adc(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        let (value, step) = match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            }
+            AddrMode::Zp => {
+                let arg = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp(arg);
+                (value, Step::next(2, 3))
+            }
+            AddrMode::ZpX => {
+                let arg = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp_offset(arg, self.x);
+                (value, Step::next(2, 4))
+            }
+            AddrMode::Absolute => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(arg);
+                (value, Step::next(2, 4))
+            }
+            AddrMode::AbsoluteX => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.x as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 4 + extra_step))
+            }
+            AddrMode::AbsoluteY => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.y as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 4 + extra_step))
+            }
+            AddrMode::IndirectX => {
+                let addr = self.addr_indirect_x();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 6))
+            }
+            AddrMode::IndirectY => {
+                let (addr, extra_step) = self.addr_indirect_y();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 5 + extra_step))
+            }
+            _ => panic!("unknown addr_mode: adc {addr_mode:?}")
+        };
+        
+        let prev_acc = self.acc;
+        self.acc = self.acc.wrapping_add(value);
+        if self.ps.carry() {
+            self.acc = self.acc.wrapping_add(1);
+        }
+        self.set_zero(self.acc);
+        self.set_carry(prev_acc, self.acc);
+        self.set_overflow(self.acc, prev_acc);
+        self.set_negative(self.acc);
+        step
     }
     
     fn and(&mut self, addr_mode: AddrMode) -> Step {
