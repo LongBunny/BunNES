@@ -517,7 +517,38 @@ impl Cpu {
     }
     
     fn dec(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        let (addr, step) = match addr_mode {
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1) as u16;
+                (addr, Step::next(2, 5))
+            }
+            AddrMode::ZpX => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let addr = addr.wrapping_add(self.x) as u16;
+                (addr, Step::next(2, 6))
+            }
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                (addr, Step::next(3, 6))
+            }
+            AddrMode::AbsoluteX => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let addr = addr.wrapping_add(self.x as u16);
+                (addr, Step::next(3, 7))
+            }
+            _ => panic!("unimplemented: cpx {addr_mode:?}")
+        };
+        
+        let mut value = self.bus.read_8(addr);
+        
+        value = value.wrapping_sub(1);
+        
+        self.set_zero(value);
+        self.set_negative(value);
+        
+        self.bus.write(addr, value);
+        
+        step
     }
     
     fn dex(&mut self) -> Step {
@@ -539,7 +570,38 @@ impl Cpu {
     }
     
     fn inc(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        let (addr, step) = match addr_mode {
+            AddrMode::Zp => {
+                let addr = self.bus.read_8(self.pc + 1) as u16;
+                (addr, Step::next(2, 5))
+            }
+            AddrMode::ZpX => {
+                let addr = self.bus.read_8(self.pc + 1);
+                let addr = addr.wrapping_add(self.x) as u16;
+                (addr, Step::next(2, 6))
+            }
+            AddrMode::Absolute => {
+                let addr = self.bus.read_16(self.pc + 1);
+                (addr, Step::next(3, 6))
+            }
+            AddrMode::AbsoluteX => {
+                let addr = self.bus.read_16(self.pc + 1);
+                let addr = addr.wrapping_add(self.x as u16);
+                (addr, Step::next(3, 7))
+            }
+            _ => panic!("unimplemented: cpx {addr_mode:?}")
+        };
+        
+        let mut value = self.bus.read_8(addr);
+        
+        value = value.wrapping_add(1);
+        
+        self.set_zero(value);
+        self.set_negative(value);
+        
+        self.bus.write(addr, value);
+        
+        step
     }
     
     fn inx(&mut self) -> Step {

@@ -431,7 +431,7 @@ mod inc {
         let mut cpu = get_cpu(code);
         cpu.bus.ram[0x01] = 254;
         cpu.bus.ram[0x02] = 255;
-        cpu.bus.ram[0x03] = 1;
+        cpu.bus.ram[0x03] = 0;
 
         test_flags(&mut cpu);
     }
