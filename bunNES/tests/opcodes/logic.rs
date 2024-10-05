@@ -149,11 +149,12 @@ mod and {
             instruction(OpCode::And, AddrMode::IndirectY),
             0x20,
         ];
+        
         let mut cpu = get_cpu(code);
         cpu.y = 4;
         cpu.bus.ram[0x20] = 0x00;
         cpu.bus.ram[0x21] = 0x05;
-        cpu.bus.ram[0x504] = 34;
+        cpu.bus.ram[0x504] = 35;
         cpu.bus.ram[0x505] = 0;
         cpu.bus.ram[0x506] = 255;
 
@@ -161,7 +162,7 @@ mod and {
     }
 
     fn test_results(cpu: &mut Cpu, x_inc: u8, y_inc: u8) {
-        cpu.acc = 35;
+        cpu.acc = 34;
         while !cpu.step() {};
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);

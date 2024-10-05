@@ -368,7 +368,55 @@ impl Cpu {
     }
     
     fn and(&mut self, addr_mode: AddrMode) -> Step {
-        unimplemented!()
+        let (value, step) = match addr_mode {
+            AddrMode::Immediate => {
+                let value = self.bus.read_8(self.pc + 1);
+                (value, Step::next(2, 2))
+            }
+            AddrMode::Zp => {
+                let arg = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp(arg);
+                (value, Step::next(2, 3))
+            }
+            AddrMode::ZpX => {
+                let arg = self.bus.read_8(self.pc + 1);
+                let value = self.value_zp_offset(arg, self.x);
+                (value, Step::next(2, 4))
+            }
+            AddrMode::Absolute => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let value = self.bus.read_8(arg);
+                (value, Step::next(3, 4))
+            }
+            AddrMode::AbsoluteX => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.x as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            AddrMode::AbsoluteY => {
+                let arg = self.bus.read_16(self.pc + 1);
+                let (addr, extra_step) = self.addr_absolute_with_offset(arg, self.y as u16);
+                let value = self.bus.read_8(addr);
+                (value, Step::next(3, 4 + extra_step))
+            }
+            AddrMode::IndirectX => {
+                let addr = self.addr_indirect_x();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 6))
+            }
+            AddrMode::IndirectY => {
+                let (addr, extra_step) = self.addr_indirect_y();
+                let value = self.bus.read_8(addr);
+                (value, Step::next(2, 5 + extra_step))
+            }
+            _ => panic!("unknown addr_mode: adc {addr_mode:?}")
+        };
+        
+        self.acc &= value;
+        self.set_zero(self.acc);
+        self.set_negative(self.acc);
+        step
     }
     
     fn asl(&mut self, addr_mode: AddrMode) -> Step {
