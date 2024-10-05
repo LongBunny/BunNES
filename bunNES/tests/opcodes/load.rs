@@ -48,7 +48,7 @@ mod lda {
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[1] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -61,7 +61,7 @@ mod lda {
         let mut cpu = get_cpu(code);
         cpu.x = 5;
         cpu.bus.ram[6] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -72,8 +72,9 @@ mod lda {
             0x00, 0x01,
         ];
         let mut cpu = get_cpu(code);
+        cpu.acc = 0;
         cpu.bus.ram[0x100] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -86,7 +87,7 @@ mod lda {
         let mut cpu = get_cpu(code);
         cpu.x = 5;
         cpu.bus.ram[0x105] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -99,7 +100,7 @@ mod lda {
         let mut cpu = get_cpu(code);
         cpu.y = 5;
         cpu.bus.ram[0x105] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -114,7 +115,7 @@ mod lda {
         cpu.bus.ram[0x24] = 0x00;
         cpu.bus.ram[0x25] = 0x05;
         cpu.bus.ram[0x500] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -122,14 +123,14 @@ mod lda {
     fn lda_indirect_y() {
         let code: Vec<u8> = vec![
             instruction(OpCode::Lda, AddrMode::IndirectY),
-            0x20
+            10
         ];
         let mut cpu = get_cpu(code);
         cpu.y = 4;
-        cpu.bus.ram[0x20] = 0x00;
-        cpu.bus.ram[0x21] = 0x05;
-        cpu.bus.ram[0x504] = 69;
-        cpu.step();
+        cpu.bus.ram[10] = 0x00;
+        cpu.bus.ram[11] = 0x01;
+        cpu.bus.ram[0x0104] = 69;
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 }
@@ -175,13 +176,13 @@ mod ldx {
 
     #[test]
     fn ldx_zero_page() {
-        let code: Vec<u8> = vec![
+        let code: Vec<u8> = vec![ 
             instruction(OpCode::Ldx, AddrMode::Zp),
             1,
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[1] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 69);
     }
 
@@ -194,7 +195,7 @@ mod ldx {
         let mut cpu = get_cpu(code);
         cpu.y = 5;
         cpu.bus.ram[6] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 69);
     }
 
@@ -206,7 +207,7 @@ mod ldx {
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[0x100] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 69);
     }
 
@@ -219,7 +220,7 @@ mod ldx {
         let mut cpu = get_cpu(code);
         cpu.y = 5;
         cpu.bus.ram[0x105] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 69);
     }
 }
@@ -271,7 +272,7 @@ mod ldy {
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[1] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 69);
     }
 
@@ -284,7 +285,7 @@ mod ldy {
         let mut cpu = get_cpu(code);
         cpu.x = 5;
         cpu.bus.ram[6] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 69);
     }
 
@@ -296,7 +297,7 @@ mod ldy {
         ];
         let mut cpu = get_cpu(code);
         cpu.bus.ram[0x100] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 69);
     }
 
@@ -309,7 +310,7 @@ mod ldy {
         let mut cpu = get_cpu(code);
         cpu.x = 5;
         cpu.bus.ram[0x105] = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 69);
     }
 }
@@ -326,7 +327,7 @@ mod sta {
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[1], 69);
     }
     
@@ -339,7 +340,7 @@ mod sta {
         let mut cpu = get_cpu(code);
         cpu.x = 5;
         cpu.acc = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[6], 69);
     }
     
@@ -351,7 +352,7 @@ mod sta {
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x0100], 69);
     }
     
@@ -364,7 +365,7 @@ mod sta {
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
         cpu.x = 5;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x105], 69);
     }
     
@@ -377,7 +378,7 @@ mod sta {
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
         cpu.y = 5;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x105], 69);
     }
     
@@ -392,7 +393,7 @@ mod sta {
         cpu.x = 4;
         cpu.bus.ram[0x24] = 0x00;
         cpu.bus.ram[0x25] = 0x05;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x500], 69);
     }
     
@@ -407,7 +408,7 @@ mod sta {
         cpu.y = 4;
         cpu.bus.ram[0x20] = 0x00;
         cpu.bus.ram[0x21] = 0x05;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x504], 69);
     }
 }
@@ -425,7 +426,7 @@ mod stx {
         ];
         let mut cpu = get_cpu(code);
         cpu.x = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[1], 69);
     }
     
@@ -438,7 +439,7 @@ mod stx {
         let mut cpu = get_cpu(code);
         cpu.y = 5;
         cpu.x = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[6], 69);
     }
     
@@ -450,7 +451,7 @@ mod stx {
         ];
         let mut cpu = get_cpu(code);
         cpu.x = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x0100], 69);
     }
 }
@@ -468,7 +469,7 @@ mod sty {
         ];
         let mut cpu = get_cpu(code);
         cpu.y = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[1], 69);
     }
     
@@ -481,7 +482,7 @@ mod sty {
         let mut cpu = get_cpu(code);
         cpu.x = 5;
         cpu.y = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[6], 69);
     }
     
@@ -493,7 +494,7 @@ mod sty {
         ];
         let mut cpu = get_cpu(code);
         cpu.y = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.bus.ram[0x0100], 69);
     }
 }
@@ -512,19 +513,19 @@ mod tax {
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 69);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.acc = 0;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 0);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.acc = 255;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 255);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), true);
@@ -545,19 +546,19 @@ mod tay {
         ];
         let mut cpu = get_cpu(code);
         cpu.acc = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 69);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.acc = 0;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 0);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.acc = 255;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.y, 255);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), true);
@@ -578,19 +579,19 @@ mod tsx {
         ];
         let mut cpu = get_cpu(code);
         cpu.sp = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 69);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.sp = 0;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 0);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.sp = 255;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.x, 255);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), true);
@@ -611,19 +612,19 @@ mod txa {
         ];
         let mut cpu = get_cpu(code);
         cpu.sp = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.sp = 0;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 0);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.sp = 255;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 255);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), true);
@@ -642,7 +643,7 @@ mod txs {
         ];
         let mut cpu = get_cpu(code);
         cpu.x = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.sp, 69);
     }
 }
@@ -661,19 +662,19 @@ mod tya {
         ];
         let mut cpu = get_cpu(code);
         cpu.y = 69;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.y = 0;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 0);
         assert_eq!(cpu.ps.zero(), true);
         assert_eq!(cpu.ps.negative(), false);
         
         cpu.y = 255;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 255);
         assert_eq!(cpu.ps.zero(), false);
         assert_eq!(cpu.ps.negative(), true);

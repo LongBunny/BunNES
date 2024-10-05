@@ -63,7 +63,7 @@ mod adc {
         let mut cpu = get_cpu(code);
         cpu.bus.ram[1] = 34;
         cpu.acc = 35;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -77,7 +77,7 @@ mod adc {
         cpu.acc = 35;
         cpu.x = 5;
         cpu.bus.ram[6] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -90,7 +90,7 @@ mod adc {
         let mut cpu = get_cpu(code);
         cpu.acc = 35;
         cpu.bus.ram[0x100] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -104,7 +104,7 @@ mod adc {
         cpu.acc = 35;
         cpu.x = 5;
         cpu.bus.ram[0x105] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -118,7 +118,7 @@ mod adc {
         cpu.acc = 35;
         cpu.y = 5;
         cpu.bus.ram[0x105] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -134,7 +134,7 @@ mod adc {
         cpu.bus.ram[0x24] = 0x00;
         cpu.bus.ram[0x25] = 0x05;
         cpu.bus.ram[0x500] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 
@@ -150,7 +150,7 @@ mod adc {
         cpu.bus.ram[0x20] = 0x00;
         cpu.bus.ram[0x21] = 0x05;
         cpu.bus.ram[0x504] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 69);
     }
 }
@@ -1002,7 +1002,7 @@ mod sbc {
         cpu.ps.set_carry(true);
         cpu.bus.ram[1] = 34;
         cpu.acc = 35;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 
@@ -1017,7 +1017,7 @@ mod sbc {
         cpu.acc = 35;
         cpu.x = 5;
         cpu.bus.ram[6] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 
@@ -1031,7 +1031,7 @@ mod sbc {
         cpu.ps.set_carry(true);
         cpu.acc = 35;
         cpu.bus.ram[0x100] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 
@@ -1046,7 +1046,7 @@ mod sbc {
         cpu.acc = 35;
         cpu.x = 5;
         cpu.bus.ram[0x105] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 
@@ -1061,7 +1061,7 @@ mod sbc {
         cpu.acc = 35;
         cpu.y = 5;
         cpu.bus.ram[0x105] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 
@@ -1078,7 +1078,7 @@ mod sbc {
         cpu.bus.ram[0x24] = 0x00;
         cpu.bus.ram[0x25] = 0x05;
         cpu.bus.ram[0x500] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 
@@ -1095,7 +1095,7 @@ mod sbc {
         cpu.bus.ram[0x20] = 0x00;
         cpu.bus.ram[0x21] = 0x05;
         cpu.bus.ram[0x504] = 34;
-        cpu.step();
+        while !cpu.step() {};
         assert_eq!(cpu.acc, 1);
     }
 }
